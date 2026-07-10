@@ -1,0 +1,72 @@
+.page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 32px;
+  background:
+    radial-gradient(circle at 20% 15%, rgb(109 40 217 / 18%), transparent 32%),
+    radial-gradient(circle at 85% 80%, rgb(16 185 129 / 12%), transparent 28%),
+    #111827;
+}
+
+.card {
+  width: min(100%, 460px);
+  border: 1px solid rgb(255 255 255 / 14%);
+  border-radius: 24px;
+  padding: 38px;
+  background: rgb(23 32 51 / 86%);
+  color: white;
+  box-shadow: 0 32px 90px -40px rgb(0 0 0 / 80%);
+  backdrop-filter: blur(18px);
+}
+
+.mark {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: #6d28d9;
+  font-weight: 800;
+}
+
+.eyebrow {
+  margin: 28px 0 8px;
+  color: #c4b5fd;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.card h1 {
+  margin: 0;
+  font-size: clamp(32px, 7vw, 44px);
+  letter-spacing: -0.04em;
+}
+
+.copy {
+  margin: 18px 0 28px;
+  color: #c9d0dc;
+  line-height: 1.7;
+}
+
+.button {
+  display: flex;
+  justify-content: center;
+  border-radius: 12px;
+  padding: 14px 18px;
+  background: #7c3aed;
+  font-weight: 700;
+}
+
+.button:hover {
+  background: #8b5cf6;
+}
+
+.note {
+  margin: 18px 0 0;
+  color: #8f9aae;
+  font-size: 12px;
+  text-align: center;
+}

@@ -1,0 +1,74 @@
+.page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 244px 1fr;
+}
+
+.sidebar,
+.line,
+.title,
+.card,
+.panel {
+  background: linear-gradient(90deg, #eceff4 20%, #f8f9fb 40%, #eceff4 60%);
+  background-size: 300% 100%;
+  animation: shimmer 1.4s infinite linear;
+}
+
+.sidebar {
+  background: #172033;
+}
+
+.content {
+  padding: 80px 32px;
+}
+
+.line {
+  width: 190px;
+  height: 12px;
+  border-radius: 999px;
+}
+
+.title {
+  width: 340px;
+  height: 48px;
+  margin-top: 14px;
+  border-radius: 12px;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
+  margin-top: 40px;
+}
+
+.card {
+  height: 142px;
+  border-radius: 15px;
+}
+
+.panel {
+  height: 230px;
+  margin-top: 30px;
+  border-radius: 17px;
+}
+
+@keyframes shimmer {
+  to {
+    background-position-x: -300%;
+  }
+}
+
+@media (max-width: 860px) {
+  .page {
+    display: block;
+  }
+
+  .sidebar {
+    height: 64px;
+  }
+
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

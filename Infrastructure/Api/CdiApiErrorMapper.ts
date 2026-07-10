@@ -1,0 +1,57 @@
+import { NextResponse } from "next/server";
+import { ZodError } from "zod";
+import {
+  CdiForbiddenError,
+  CdiGatewayError,
+  CdiNotFoundError,
+  CdiUnauthorizedError,
+} from "@/Infrastructure/Errors/CdiErrors";
+
+export class CdiApiErrorMapper {
+  static toResponse(error: unknown): NextResponse {
+    if (error instanceof CdiUnauthorizedError) {
+      return NextResponse.json(
+        { error: "UNAUTHORIZED", message: error.message },
+        { status: 401 },
+      );
+    }
+    if (error instanceof CdiForbiddenError) {
+      return NextResponse.json(
+        { error: "FORBIDDEN", message: error.message },
+        { status: 403 },
+      );
+    }
+    if (error instanceof CdiNotFoundError) {
+      return NextResponse.json(
+        { error: "NOT_FOUND", message: error.message },
+        { status: 404 },
+      );
+    }
+    if (error instanceof ZodError) {
+      return NextResponse.json(
+        {
+          error: "INVALID_REQUEST",
+          message: "Request validation failed",
+          issues: error.issues,
+        },
+        { status: 400 },
+      );
+    }
+    if (error instanceof CdiGatewayError) {
+      return NextResponse.json(
+        { error: "DECIONIS_GATEWAY_ERROR", message: error.message },
+        {
+          status:
+            error.status >= 400 && error.status < 600 ? error.status : 502,
+        },
+      );
+    }
+    return NextResponse.json(
+      {
+        error: "INTERNAL_ERROR",
+        message: "CDI could not complete the request",
+      },
+      { status: 500 },
+    );
+  }
+}

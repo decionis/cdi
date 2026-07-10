@@ -1,0 +1,55 @@
+.page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 30px;
+  background: var(--surface);
+}
+
+.card {
+  max-width: 580px;
+  border: 1px solid var(--ink-200);
+  border-radius: 22px;
+  padding: 34px;
+  background: white;
+  box-shadow: var(--shadow-md);
+}
+
+.icon {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--amber-100);
+  color: var(--amber-700);
+}
+
+.eyebrow {
+  margin: 24px 0 7px;
+  color: var(--amber-700) !important;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.card h1 {
+  margin: 0;
+  font-size: 28px;
+  letter-spacing: -0.03em;
+}
+
+.card p {
+  color: var(--ink-500);
+  line-height: 1.65;
+}
+
+.card button {
+  border: 0;
+  border-radius: 10px;
+  padding: 11px 17px;
+  background: var(--violet-600);
+  color: white;
+  font-weight: 750;
+}
