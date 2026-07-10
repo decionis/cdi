@@ -1,0 +1,53 @@
+import { notFound } from "next/navigation";
+import { AccountConnections } from "@/components/account/AccountConnections";
+import { AccountDecisionPanel } from "@/components/account/AccountDecisionPanel";
+import { AccountEvidence } from "@/components/account/AccountEvidence";
+import { AccountHeader } from "@/components/account/AccountHeader";
+import { AccountPolicy } from "@/components/account/AccountPolicy";
+import { AccountTimeline } from "@/components/account/AccountTimeline";
+import { AppShell } from "@/components/layout/AppShell";
+import { CdiCompositionRoot } from "@/infra/composition/CdiCompositionRoot";
+import { CdiNotFoundError } from "@/infra/errors/CdiErrors";
+import styles from "@/components/account/Account.module.css";
+
+export const dynamic = "force-dynamic";
+
+export default async function AccountPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id: accountId } = await params;
+  const context = await new CdiCompositionRoot().createServerContext();
+
+  try {
+    const [account, opportunities] = await Promise.all([
+      context.accounts.requireAccount(accountId),
+      context.opportunities.list(),
+    ]);
+    const opportunity =
+      opportunities.find((candidate) => candidate.accountId === account.id) ??
+      null;
+    const canReview = context.session.roles.some(
+      (role) => role === "APPROVER" || role === "ADMIN",
+    );
+
+    return (
+      <AppShell session={context.session}>
+        <AccountHeader account={account} />
+        <AccountDecisionPanel opportunity={opportunity} canReview={canReview} />
+        <div className={styles.contentGrid}>
+          <AccountEvidence evidence={account.evidence} />
+          <div className={styles.sideStack}>
+            <AccountConnections connectors={account.connectors} />
+            <AccountPolicy policy={account.policyEnvelope} />
+            <AccountTimeline events={account.timeline} />
+          </div>
+        </div>
+      </AppShell>
+    );
+  } catch (error) {
+    if (error instanceof CdiNotFoundError) notFound();
+    throw error;
+  }
+}

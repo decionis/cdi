@@ -5,6 +5,7 @@ Follow these strict architectural and styling rules:
 ### 1. File Structure & Organization
 * **Modularize:** Break down large, bulky files into smaller, single-responsibility files.
 * **Feature Grouping:** Group related files and codes belonging to the same feature into dedicated sub-folders.
+* **Directory Naming:** Use concise lowercase directory names (for example, `components/account` and `infra/repositories`).
 * **Naming Conventions:** Use **PascalCase** for all file names (e.g., `UserService.ts`, `PaymentGateway.js`).
 
 ### 2. Code Architecture (OOP Focus)
