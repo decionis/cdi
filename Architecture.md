@@ -18,35 +18,35 @@ all authoritative customer signals, policy decisions, credentials, and action ex
 
 ```text
 app/                          Next.js routes and framework entrypoints
-  accounts/[accountId]/       Account evidence view
+  accounts/[id]/              Account evidence view
   api/cdi/                    Browser-facing CDI BFF
   sign-in/                    Decionis identity handoff
-Application/                  Use-case services and permission checks
-  Accounts/
-  Dashboard/
-  Opportunities/
-Components/                   Feature-grouped React presentation
-  Account/
-  Common/
-  Dashboard/
-  Layout/
-Domain/                       Typed, runtime-validated CDI contracts
-  Accounts/
-  Auth/
-  Common/
-  Evidence/
-  Opportunities/
-  Portfolio/
-Infrastructure/               External systems and implementation details
-  Api/
-  Auth/
-  Composition/
-  Config/
-  Demo/
-  Errors/
-  Repositories/
-Presentation/                 Formatting and presentation policies
-  Format/
+application/                  Use-case services and permission checks
+  accounts/
+  dashboard/
+  opportunities/
+components/                   Feature-grouped React presentation
+  account/
+  common/
+  dashboard/
+  layout/
+domain/                       Typed, runtime-validated CDI contracts
+  accounts/
+  auth/
+  common/
+  evidence/
+  opportunities/
+  portfolio/
+infra/                        External systems and implementation details
+  api/
+  auth/
+  composition/
+  config/
+  demo/
+  errors/
+  repositories/
+presentation/                 Formatting and presentation policies
+  format/
 ```
 
 ## Runtime modes

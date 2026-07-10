@@ -1,9 +1,9 @@
-import { AccountPortfolioTable } from "@/Components/Dashboard/AccountPortfolioTable";
-import { DashboardHeader } from "@/Components/Dashboard/DashboardHeader";
-import { OpportunityQueue } from "@/Components/Dashboard/OpportunityQueue";
-import { PortfolioSummary } from "@/Components/Dashboard/PortfolioSummary";
-import { AppShell } from "@/Components/Layout/AppShell";
-import { CdiCompositionRoot } from "@/Infrastructure/Composition/CdiCompositionRoot";
+import { AccountPortfolioTable } from "@/components/dashboard/AccountPortfolioTable";
+import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
+import { OpportunityQueue } from "@/components/dashboard/OpportunityQueue";
+import { PortfolioSummary } from "@/components/dashboard/PortfolioSummary";
+import { AppShell } from "@/components/layout/AppShell";
+import { CdiCompositionRoot } from "@/infra/composition/CdiCompositionRoot";
 
 export const dynamic = "force-dynamic";
 
