@@ -1,8 +1,13 @@
 # Evidence Pack
 
-The artifact index for a vendor security review. When a prospect's security, legal, or procurement
-team sends a questionnaire about Decionis Steward, this is what you send back — links to things they can
-read and run, rather than a call.
+The artifact index for a security review of Steward.
+
+Written primarily for **the person adopting it**. If you want to run Steward inside a bank, a utility,
+or an insurer, your own security team will ask most of the questions below, and this is the set of
+links that answers them — things they can read and run rather than a meeting they have to schedule.
+
+It answers the same questions when someone is reviewing Decionis as a vendor. That is a by-product of
+being honest about the boundary, not the reason this document exists.
 
 Everything here is public in this repository. None of it requires a call, an NDA, or a screen share.
 
