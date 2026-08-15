@@ -28,24 +28,25 @@ That raises the cost of the findings below considerably.
 
 Measured against the current tree this session, not estimated.
 
-| Finding                                                                                   | Severity for a buyer   | Status        |
-| ----------------------------------------------------------------------------------------- | ---------------------- | ------------- |
-| 15 known vulnerabilities in the production tree — 8 high, 7 moderate                      | Blocker                | ✅ Fixed      |
-| `package.json` has no `license`, `repository`, `description`, or `author` field           | Blocker                | ✅ Fixed      |
-| No `LICENSE` file, so the code is all-rights-reserved                                     | Blocker                | ✅ Fixed      |
-| LGPL-3.0-or-later present in the production tree (`@img/sharp-libvips-*`)                 | High — needs an answer | ✅ Documented |
-| No CI or audit enforcement                                                                | High                   | ✅ Fixed      |
-| No signed or attested releases, no SBOM                                                   | High                   | ✅ Fixed      |
-| Branch protection — PR + code-owner review enforced                                       | High                   | ✅ Fixed      |
-| **Required status checks absent, so a PR can merge with CI red**                          | **High**               | **Open**      |
-| Dependabot security updates disabled; `dependencies` label missing                        | High                   | ✅ Fixed      |
-| **Push protection and private vulnerability reporting still disabled**                    | **High**               | **Open**      |
-| CODEOWNERS named GitHub teams that do not exist, so no PR could be merged                 | Blocker                | ✅ Fixed      |
-| **Sole code owner cannot approve their own PR — repository still deadlocks**              | **Blocker**            | **Open**      |
-| 10 advisories in the dev tree the production-only audit did not cover                     | High                   | ✅ Fixed      |
-| Auth and gateway paths (`middleware.ts`, `CdiSessionResolver`, `JsonHttpClient`) untested | High                   | ✅ Fixed      |
-| No `SECURITY.md`, no disclosure policy, no response-time commitment                       | High                   | ✅ Fixed      |
-| SDK dependency `@decionis-ai/sdk` declared but imported nowhere                           | Medium                 | ✅ Fixed      |
+| Finding                                                                                   | Severity for a buyer   | Status                 |
+| ----------------------------------------------------------------------------------------- | ---------------------- | ---------------------- |
+| 15 known vulnerabilities in the production tree — 8 high, 7 moderate                      | Blocker                | ✅ Fixed               |
+| `package.json` has no `license`, `repository`, `description`, or `author` field           | Blocker                | ✅ Fixed               |
+| No `LICENSE` file, so the code is all-rights-reserved                                     | Blocker                | ✅ Fixed               |
+| LGPL-3.0-or-later present in the production tree (`@img/sharp-libvips-*`)                 | High — needs an answer | ✅ Documented          |
+| No CI or audit enforcement                                                                | High                   | ✅ Fixed               |
+| No signed or attested releases, no SBOM                                                   | High                   | ✅ Fixed               |
+| Branch protection — PR + code-owner review enforced                                       | High                   | ✅ Fixed               |
+| Required status checks absent, so a PR could merge with CI red                            | High                   | ✅ Fixed               |
+| Dependabot security updates disabled; `dependencies` label missing                        | High                   | ✅ Fixed               |
+| Push protection disabled                                                                  | High                   | ✅ Fixed               |
+| Private vulnerability reporting unavailable — public repositories only                    | Medium                 | Blocked on public flip |
+| CODEOWNERS named GitHub teams that do not exist, so no PR could be merged                 | Blocker                | ✅ Fixed               |
+| Sole code owner could not approve their own PR — repository deadlocked                    | Blocker                | ✅ Fixed               |
+| 10 advisories in the dev tree the production-only audit did not cover                     | High                   | ✅ Fixed               |
+| Auth and gateway paths (`middleware.ts`, `CdiSessionResolver`, `JsonHttpClient`) untested | High                   | ✅ Fixed               |
+| No `SECURITY.md`, no disclosure policy, no response-time commitment                       | High                   | ✅ Fixed               |
+| SDK dependency `@decionis-ai/sdk` declared but imported nowhere                           | Medium                 | ✅ Fixed               |
 
 Two open questions from the previous plan are now answered:
 
@@ -98,8 +99,8 @@ Copyright holder: **Decionis, Inc.**, a Delaware corporation. Landed:
    regulated procurement as worse than a restrictive license, because it cannot be cleared.
    `"private": true` is retained; the README now explains that it prevents accidental npm publication
    and does not restrict use under Apache-2.0.
-4. ✅ **`ThirdPartyLicenses.md`** — all 25 production packages inventoried by license: 14 MIT,
-   4 Apache-2.0, 3 ISC, 1 BSD-3-Clause, 1 0BSD, 1 CC-BY-4.0, 1 LGPL-3.0-or-later. Handing a buyer
+4. ✅ **`ThirdPartyLicenses.md`** — all 29 production packages inventoried by license: 15 MIT,
+   7 Apache-2.0, 3 ISC, 1 BSD-3-Clause, 1 0BSD, 1 CC-BY-4.0, 1 LGPL-3.0-or-later. Handing a buyer
    this file unprompted removes a full round-trip from their review. It notes that `@img/sharp-*` and
    `@next/swc-*` are platform-conditional, so a deployment-accurate SBOM must be regenerated on the
    target platform — pre-empting a "your SBOM doesn't match your container" objection.
@@ -160,31 +161,35 @@ This is where an enterprise buyer's opinion is actually formed.
    fail permanently on a Linux runner against a macOS-generated file. Asserting the license set is
    platform-independent and is the property a reviewer actually cares about.
 
-4. ⚠️ **Branch protection on `master` — active, but CI is still not required.** The ruleset
-   "Decionis Protection Rules" is enforcing, with no bypass actors. Verified against the API rather
-   than the settings UI, because a ruleset can look configured and enforce nothing:
+4. ✅ **Branch protection on `master` — complete.** The ruleset "Decionis Protection Rules" is active
+   on `~DEFAULT_BRANCH`. Verified against the API rather than the settings UI, because a ruleset can
+   look configured and enforce nothing — this one previously existed while `disabled` and targeting no
+   branch at all:
 
    | Rule                            | State                                                  |
    | ------------------------------- | ------------------------------------------------------ |
-   | Pull request required           | ✅ active                                              |
-   | Approving reviews               | ✅ 1                                                   |
-   | Code-owner review               | ✅ required — CODEOWNERS is live                       |
-   | Bypass actors                   | ✅ none, so admins cannot merge around it              |
+   | Pull request required           | ✅ 1 approving review, code-owner review required      |
+   | `required_status_checks`        | ✅ `verify (node 20)`, `verify (node 22)`, `audit`     |
    | `deletion`, `non_fast_forward`  | ✅ active                                              |
-   | **`required_status_checks`**    | ❌ **empty**                                           |
-   | `code_scanning` (CodeQL, high+) | ⚠️ requires results CodeQL cannot produce (see item 8) |
+   | Bypass actors                   | org admins, the admin role, and the sole maintainer    |
+   | `code_scanning` (CodeQL, high+) | ⚠️ waits on results CodeQL cannot produce (see item 8) |
    | `code_coverage` (80% minimum)   | ⚠️ this repository generates no coverage report at all |
 
-   Direct pushes to `master` are genuinely blocked, which is the larger half. But **`verify (node 20)`,
-   `verify (node 22)`, and `audit` are not required**, so a pull request can still merge with CI fully
-   red provided a code owner approves. Add the **Require status checks to pass** rule naming those
-   three contexts.
+   **Adding the status checks took two attempts, and the reason is worth recording.** GitHub's `GET`
+   on a ruleset returns `code_coverage.max_coverage_drop: null`, but its `PUT` schema rejects null for
+   that field — so reading a ruleset and writing it back _unchanged_ fails with a 422. Strip
+   null-valued keys before the write. Check that `bypass_actors` survives any such round-trip:
+   dropping it locks the sole maintainer out of their own repository.
 
-   The other two rules reference data that does not exist. `code_scanning` demands CodeQL results
-   while Code Security is disabled, so CodeQL can never upload any; `code_coverage` demands 80% while
-   `pnpm test` runs without `--coverage` and nothing is ever reported. Either enable the underlying
-   capability or remove the rule — a gate waiting on a signal that never arrives is indistinguishable
-   from a gate that is off, and harder to notice.
+   The bypass list is the deliberate solo-maintainer compromise from W5. It bypasses **every** rule,
+   status checks included — so CI is a hard gate for everyone else and a safety net for the
+   maintainer. Tighten it when a second maintainer exists.
+
+   Two rules still wait on signals this repository does not produce. `code_scanning` demands CodeQL
+   results while Code Security is disabled, so CodeQL can never upload any; `code_coverage` demands
+   80% while `pnpm test` runs without `--coverage` and nothing is ever reported. Either enable the
+   underlying capability or remove the rule — a gate waiting on a signal that never arrives is
+   indistinguishable from a gate that is off, and harder to notice.
 
 5. ✅ **Every GitHub Action pinned by commit SHA**, not tag, with the version in a trailing comment.
    Tags are mutable; a governance product that resolves build steps by moving reference undercuts its
@@ -198,15 +203,22 @@ This is where an enterprise buyer's opinion is actually formed.
    `gh attestation verify <tarball> --repo decionis/cdi`, which confirms the artifact came from this
    workflow and this commit rather than from someone's laptop. The release notes carry that command.
    Nothing is published to npm (`private: true`), so `--provenance` does not apply.
-8. **Repository security settings — partially done, and the gaps are the interesting part:**
+8. ✅ **Repository security settings — done, bar one that is not possible yet:**
 
    | Setting                             | State                                                    |
    | ----------------------------------- | -------------------------------------------------------- |
    | Secret scanning                     | ✅ enabled                                               |
-   | **Push protection**                 | ❌ **disabled** — secrets can still be pushed            |
-   | **Dependabot security updates**     | ❌ **disabled**                                          |
-   | **Private vulnerability reporting** | ❌ not enabled — `SECURITY.md`'s primary channel 404s    |
+   | Push protection                     | ✅ enabled                                               |
+   | Dependabot security updates         | ✅ enabled                                               |
    | CodeQL workflow                     | ✅ [`codeql.yml`](../.github/workflows/codeql.yml) added |
+   | **Private vulnerability reporting** | ⚠️ **not available on an internal repository**           |
+
+   Private vulnerability reporting cannot be enabled here. Both `GET` and `PUT` on
+   `/repos/decionis/cdi/private-vulnerability-reporting` return 404 with an admin token, because
+   GitHub scopes the feature to **public** repositories. This plan listed it as an open action item
+   for several revisions before anyone checked whether it was possible — it belongs in the public-flip
+   checklist, not the current one. Until then `security@decionis.com` is the only working disclosure
+   route, which is harmless while the repository is internal and outside researchers cannot see it.
 
    Secret scanning without push protection detects a leaked credential _after_ it is in history,
    which for a fintech repository about to go public is the expensive half. All four toggles need
