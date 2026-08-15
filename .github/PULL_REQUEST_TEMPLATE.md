@@ -17,12 +17,12 @@ Closes #
 ## Trust boundary
 
 <!--
-CDI renders evidence and forwards reviews; the Decionis platform owns policy, credentials,
+Steward renders evidence and forwards reviews; the Decionis platform owns policy, credentials,
 execution, and the audit record. See CONTRIBUTING.md and ThreatModel.md.
 -->
 
 - [ ] This change does **not** evaluate policy locally, persist customer data in this tier, add a
-      fixture fallback on live API failure, or treat CDI's own role check as the security control.
+      fixture fallback on live API failure, or treat Steward's own role check as the security control.
 
 If it touches `middleware.ts`, `infra/auth/`, `infra/api/`, `infra/config/`, `domain/`, or
 `application/`:

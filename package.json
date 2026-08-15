@@ -1,17 +1,17 @@
 {
-  "name": "@decionis/cdi",
+  "name": "@decionis/steward",
   "version": "0.1.2",
   "private": true,
-  "description": "Governed customer expansion for regulated fintech operations. The operational control center for Adaptive Customer Decision Intelligence.",
+  "description": "Signal capture and decisioning for customer operations teams \u2014 correlate usage, support and CRM evidence, surface churn and expansion before the customer calls, and route every operator review through a Decionis policy verdict.",
   "license": "Apache-2.0",
   "author": "Decionis, Inc. (https://decionis.com)",
-  "homepage": "https://github.com/decionis/cdi#readme",
+  "homepage": "https://github.com/decionis/steward#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/decionis/cdi.git"
+    "url": "git+https://github.com/decionis/steward.git"
   },
   "bugs": {
-    "url": "https://github.com/decionis/cdi/issues"
+    "url": "https://github.com/decionis/steward/issues"
   },
   "type": "module",
   "packageManager": "pnpm@9.15.3",
@@ -32,7 +32,7 @@
     "licenses:list": "pnpm licenses list --prod",
     "verify": "pnpm format && pnpm lint && pnpm typecheck && pnpm test && pnpm build",
     "screenshots": "node scripts/CaptureScreenshots.mjs",
-    "sbom": "node scripts/GenerateSbom.mjs decionis-cdi.cdx.json",
+    "sbom": "node scripts/GenerateSbom.mjs decionis-steward.cdx.json",
     "prepare": "git config core.hooksPath .githooks || true",
     "links:check": "node scripts/CheckMarkdownLinks.mjs",
     "test:coverage": "vitest run --coverage"

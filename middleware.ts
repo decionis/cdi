@@ -20,7 +20,8 @@ const UNAUTHENTICATED_PATHS = new Set([
 ]);
 
 function isLiveMode(): boolean {
-  if (process.env.CDI_DATA_MODE) return process.env.CDI_DATA_MODE === "live";
+  if (process.env.STEWARD_DATA_MODE)
+    return process.env.STEWARD_DATA_MODE === "live";
   return process.env.NODE_ENV === "production";
 }
 
@@ -74,8 +75,8 @@ function refuseUnauthenticated(request: NextRequest): NextResponse | null {
   if (UNAUTHENTICATED_PATHS.has(request.nextUrl.pathname)) return null;
 
   const accessTokenCookie =
-    process.env.CDI_ACCESS_TOKEN_COOKIE ?? "decionis_access_token";
-  const orgIdCookie = process.env.CDI_ORG_ID_COOKIE ?? "decionis_org_id";
+    process.env.STEWARD_ACCESS_TOKEN_COOKIE ?? "decionis_access_token";
+  const orgIdCookie = process.env.STEWARD_ORG_ID_COOKIE ?? "decionis_org_id";
   const hasToken = Boolean(request.cookies.get(accessTokenCookie)?.value);
   const hasOrg = Boolean(request.cookies.get(orgIdCookie)?.value);
   if (hasToken && hasOrg) return null;

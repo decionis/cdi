@@ -1,5 +1,5 @@
 import type { ZodType } from "zod";
-import { CdiGatewayError } from "@/infra/errors/CdiErrors";
+import { StewardGatewayError } from "@/infra/errors/StewardErrors";
 
 export type FetchClient = (
   input: string | URL,
@@ -61,7 +61,7 @@ export class JsonHttpClient {
       });
       const body = await this.parseBody(response);
       if (!response.ok) {
-        throw new CdiGatewayError(
+        throw new StewardGatewayError(
           this.readErrorMessage(body, response.statusText),
           response.status,
           body,
@@ -87,6 +87,6 @@ export class JsonHttpClient {
     if (body && typeof body === "object" && "message" in body) {
       return String((body as { message: unknown }).message);
     }
-    return fallback || "Decionis CDI request failed";
+    return fallback || "Decionis Steward request failed";
   }
 }

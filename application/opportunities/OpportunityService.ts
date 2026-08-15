@@ -1,16 +1,16 @@
-import type { CdiSession } from "@/domain/auth/CdiSession";
+import type { StewardSession } from "@/domain/auth/StewardSession";
 import {
   OpportunityReviewSchema,
   type CustomerOpportunity,
   type OpportunityReviewResult,
 } from "@/domain/opportunities/CustomerOpportunity";
-import { CdiForbiddenError } from "@/infra/errors/CdiErrors";
-import type { CdiRepository } from "@/infra/repositories/CdiRepository";
+import { StewardForbiddenError } from "@/infra/errors/StewardErrors";
+import type { StewardRepository } from "@/infra/repositories/StewardRepository";
 
 export class OpportunityService {
   constructor(
-    private readonly repository: CdiRepository,
-    private readonly session: CdiSession,
+    private readonly repository: StewardRepository,
+    private readonly session: StewardSession,
   ) {}
 
   list(): Promise<CustomerOpportunity[]> {
@@ -26,7 +26,7 @@ export class OpportunityService {
         (role) => role === "APPROVER" || role === "ADMIN",
       )
     ) {
-      throw new CdiForbiddenError();
+      throw new StewardForbiddenError();
     }
     const review = OpportunityReviewSchema.parse(input);
     return this.repository.reviewOpportunity(opportunityId, review);

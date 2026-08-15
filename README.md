@@ -2,16 +2,16 @@
   <img src="docs/logo.png" alt="Decionis" width="88" height="88" />
 </p>
 
-# Decionis CDI
+# Decionis Steward
 
-[![Verify](https://github.com/decionis/cdi/actions/workflows/verify.yml/badge.svg)](https://github.com/decionis/cdi/actions/workflows/verify.yml)
-[![Audit](https://github.com/decionis/cdi/actions/workflows/audit.yml/badge.svg)](https://github.com/decionis/cdi/actions/workflows/audit.yml)
-[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/decionis/cdi/badge)](https://scorecard.dev/viewer/?uri=github.com/decionis/cdi)
+[![Verify](https://github.com/decionis/steward/actions/workflows/verify.yml/badge.svg)](https://github.com/decionis/steward/actions/workflows/verify.yml)
+[![Audit](https://github.com/decionis/steward/actions/workflows/audit.yml/badge.svg)](https://github.com/decionis/steward/actions/workflows/audit.yml)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/decionis/steward/badge)](https://scorecard.dev/viewer/?uri=github.com/decionis/steward)
 [![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](./LICENSE)
 
-**Governed customer expansion for regulated fintech operations.**
+**Signal capture and decisioning for enterprise customer operations.**
 
-CDI is the operational control center for Adaptive Customer Decision Intelligence. It gives customer
+Steward is the operational control center for Adaptive Customer Decision Intelligence. It gives customer
 operations, risk, and revenue teams a single reviewable surface over their account portfolio: it
 correlates account evidence, surfaces friction and expansion opportunities, and forwards every
 operator review to the Decionis execution control plane — where the authoritative decision is made,
@@ -19,32 +19,32 @@ recorded, and executed.
 
 The problem it solves: in regulated fintech, the people closest to the customer can see that an
 account is ready for a higher processing limit or is about to churn, but they cannot act on it
-without an auditable, policy-bound path. CDI is that path. Every action an operator takes here
+without an auditable, policy-bound path. Steward is that path. Every action an operator takes here
 becomes a reviewed, attributable event upstream — never an ad-hoc change made in a spreadsheet.
 
-![The CDI control center: portfolio health, evidence coverage, and the governed action queue](docs/screenshot-control-center.png)
+![The Steward control center: portfolio health, evidence coverage, and the governed action queue](docs/screenshot-control-center.png)
 
-## What CDI is not
+## What Steward is not
 
 This boundary is the most important thing to understand before contributing.
 
-CDI does **not** own policy evaluation, connector secrets, execution grants, or Decision Dossiers.
-Those remain authoritative in the Decionis platform. CDI is a presentation and orchestration layer:
+Steward does **not** own policy evaluation, connector secrets, execution grants, or Decision Dossiers.
+Those remain authoritative in the Decionis platform. Steward is a presentation and orchestration layer:
 
-| CDI owns                               | Decionis platform owns                                |
+| Steward owns                           | Decionis platform owns                                |
 | -------------------------------------- | ----------------------------------------------------- |
 | The operator UI and review workflow    | Policy evaluation and the `customer_ops` policy pack  |
 | Server-side orchestration (the BFF)    | Connector credentials and identity resolution         |
 | Typed, runtime-validated API contracts | Execution grants, Decision Dossiers, the audit ledger |
 | Formatting and presentation policy     | The authoritative record of every review              |
 
-An operator can accept a review in CDI. That acceptance cannot, by itself, change a processing limit
-or a policy. CDI forwards the review; Decionis decides, executes, and returns the resulting state and
+An operator can accept a review in Steward. That acceptance cannot, by itself, change a processing limit
+or a policy. Steward forwards the review; Decionis decides, executes, and returns the resulting state and
 a dossier reference.
 
 ```text
 Browser
-  -> CDI Next.js server / BFF          <- this repository
+  -> Steward Next.js server / BFF          <- this repository
     -> Decionis /v1/cdi APIs
       -> SignalFed, connectors, identity resolution
       -> customer_ops policy pack
@@ -66,8 +66,8 @@ Open <http://localhost:3000>.
 
 ### What you get in demo mode
 
-`CDI_DATA_MODE=demo` (the default outside production) serves every screen from
-`infra/demo/DemoCdiData.ts` via `DemoCdiRepository`. You are signed in as a fixture operator with
+`STEWARD_DATA_MODE=demo` (the default outside production) serves every screen from
+`infra/demo/DemoStewardData.ts` via `DemoStewardRepository`. You are signed in as a fixture operator with
 `ADMIN` and `APPROVER` roles in the `demo-fintech` organization, so the full review flow is
 exercisable end to end:
 
@@ -93,17 +93,17 @@ rather than left to drift out of date.
 
 ## Configuration
 
-All configuration is parsed and validated once, at startup, by `CdiRuntimeConfig.fromEnvironment()`.
+All configuration is parsed and validated once, at startup, by `StewardRuntimeConfig.fromEnvironment()`.
 Invalid or missing required values fail fast rather than degrading at request time.
 
-| Variable                           | Required         | Default                           | Purpose                                                      |
-| ---------------------------------- | ---------------- | --------------------------------- | ------------------------------------------------------------ |
-| `CDI_DATA_MODE`                    | no               | `live` in production, else `demo` | Selects `DemoCdiRepository` or `DecionisCdiRepository`.      |
-| `DECIONIS_API_BASE_URL`            | **in live mode** | —                                 | Decionis API origin. Startup throws in live mode if unset.   |
-| `DECIONIS_CDI_SERVICE_TOKEN`       | no               | —                                 | Server-to-server fallback credential. Prefer a user session. |
-| `CDI_ACCESS_TOKEN_COOKIE`          | no               | `decionis_access_token`           | Cookie carrying the Decionis access token.                   |
-| `CDI_ORG_ID_COOKIE`                | no               | `decionis_org_id`                 | Cookie carrying the organization scope.                      |
-| `NEXT_PUBLIC_DECIONIS_SIGN_IN_URL` | no               | `https://decionis.com/sign-in`    | External identity handoff target used by `/sign-in`.         |
+| Variable                           | Required         | Default                           | Purpose                                                         |
+| ---------------------------------- | ---------------- | --------------------------------- | --------------------------------------------------------------- |
+| `STEWARD_DATA_MODE`                | no               | `live` in production, else `demo` | Selects `DemoStewardRepository` or `DecionisStewardRepository`. |
+| `DECIONIS_API_BASE_URL`            | **in live mode** | —                                 | Decionis API origin. Startup throws in live mode if unset.      |
+| `DECIONIS_STEWARD_SERVICE_TOKEN`   | no               | —                                 | Server-to-server fallback credential. Prefer a user session.    |
+| `STEWARD_ACCESS_TOKEN_COOKIE`      | no               | `decionis_access_token`           | Cookie carrying the Decionis access token.                      |
+| `STEWARD_ORG_ID_COOKIE`            | no               | `decionis_org_id`                 | Cookie carrying the organization scope.                         |
+| `NEXT_PUBLIC_DECIONIS_SIGN_IN_URL` | no               | `https://decionis.com/sign-in`    | External identity handoff target used by `/sign-in`.            |
 
 Two further cookies are read opportunistically in live mode and are **not** required:
 `decionis_display_name` (URL-encoded, for the app shell) and `decionis_roles` (a comma-separated
@@ -111,12 +111,12 @@ subset of `VIEWER,OPERATOR,APPROVER,ADMIN`; anything unrecognized is dropped, an
 falls back to `VIEWER`).
 
 No API credential is ever exposed to browser code. The upstream client is server-only, and its
-request timeout is currently fixed at 8s in `CdiRuntimeConfig`.
+request timeout is currently fixed at 8s in `StewardRuntimeConfig`.
 
 ## Live mode
 
 ```dotenv
-CDI_DATA_MODE=live
+STEWARD_DATA_MODE=live
 DECIONIS_API_BASE_URL=https://api.decionis.com
 ```
 
@@ -131,13 +131,13 @@ feature.
 
 ### Routes this app exposes
 
-| Route                                | Method | Notes                                       |
-| ------------------------------------ | ------ | ------------------------------------------- |
-| `/api/cdi/portfolio`                 | GET    | Portfolio snapshot for the session's org.   |
-| `/api/cdi/accounts/[id]`             | GET    | `404` when the account is unknown.          |
-| `/api/cdi/opportunities`             | GET    | Opportunity queue.                          |
-| `/api/cdi/opportunities/[id]/review` | POST   | Requires `APPROVER` or `ADMIN`, else `403`. |
-| `/api/health`                        | GET    | Unauthenticated liveness probe.             |
+| Route                                    | Method | Notes                                       |
+| ---------------------------------------- | ------ | ------------------------------------------- |
+| `/api/steward/portfolio`                 | GET    | Portfolio snapshot for the session's org.   |
+| `/api/steward/accounts/[id]`             | GET    | `404` when the account is unknown.          |
+| `/api/steward/opportunities`             | GET    | Opportunity queue.                          |
+| `/api/steward/opportunities/[id]/review` | POST   | Requires `APPROVER` or `ADMIN`, else `403`. |
+| `/api/health`                            | GET    | Unauthenticated liveness probe.             |
 
 ### Upstream endpoints it expects
 
@@ -156,15 +156,15 @@ subtly wrong number on a dashboard.
 included [Dockerfile](./Dockerfile) packages it:
 
 ```bash
-docker build -t decionis-cdi .
-docker run -p 3000:3000 decionis-cdi          # demo mode, no credentials
+docker build -t decionis-steward .
+docker run -p 3000:3000 decionis-steward          # demo mode, no credentials
 ```
 
 ```bash
 docker run -p 3000:3000 \
-  -e CDI_DATA_MODE=live \
+  -e STEWARD_DATA_MODE=live \
   -e DECIONIS_API_BASE_URL=https://api.decionis.com \
-  decionis-cdi                                 # live mode
+  decionis-steward                                 # live mode
 ```
 
 The image runs as a non-root user, disables Next telemetry, and declares a `HEALTHCHECK` against
@@ -179,7 +179,7 @@ Tagged releases ship a deployable tarball, a CycloneDX SBOM, and a signed SLSA p
 attestation. Verify an artifact came from this repository before deploying it:
 
 ```bash
-gh attestation verify decionis-cdi-<version>.tar.gz --repo decionis/cdi
+gh attestation verify decionis-steward-<version>.tar.gz --repo decionis/steward
 ```
 
 ## Architecture
@@ -191,11 +191,11 @@ implementations through a composition root and `presentation` holding formatting
 | --------------- | ------------------------------------------------------------------ |
 | `app/`          | Next.js routes, the BFF, and framework entrypoints.                |
 | `application/`  | Use-case services and permission checks (`OpportunityService`, …). |
-| `domain/`       | Typed, runtime-validated CDI contracts. No I/O.                    |
+| `domain/`       | Typed, runtime-validated Steward contracts. No I/O.                |
 | `infra/`        | Gateways, repositories, config, errors, demo data, composition.    |
 | `presentation/` | Formatting and presentation policy.                                |
 
-Swapping demo for live is a single decision in `CdiRepositoryFactory` behind the `CdiRepository`
+Swapping demo for live is a single decision in `StewardRepositoryFactory` behind the `StewardRepository`
 interface — the application and UI layers cannot tell the difference. See
 [Architecture.md](./Architecture.md) for the full boundary and directory map.
 
@@ -256,19 +256,19 @@ in the open.
 
 The trust boundary is enforced in four files, and each is covered by tests you can run:
 
-| Enforcement                                             | Code                                                                     | Tests                        |
-| ------------------------------------------------------- | ------------------------------------------------------------------------ | ---------------------------- |
-| Session gating, 401-vs-redirect, health-probe exemption | [middleware.ts](middleware.ts)                                           | `middleware.test.ts`         |
-| Role parsing and the `VIEWER` privilege floor           | [CdiSessionResolver.ts](infra/auth/CdiSessionResolver.ts)                | `CdiSessionResolver.test.ts` |
-| Credential handling and boundary schema validation      | [JsonHttpClient.ts](infra/api/JsonHttpClient.ts)                         | `JsonHttpClient.test.ts`     |
-| Role-gated review forwarding                            | [OpportunityService.ts](application/opportunities/OpportunityService.ts) | `OpportunityService.test.ts` |
+| Enforcement                                             | Code                                                                     | Tests                            |
+| ------------------------------------------------------- | ------------------------------------------------------------------------ | -------------------------------- |
+| Session gating, 401-vs-redirect, health-probe exemption | [middleware.ts](middleware.ts)                                           | `middleware.test.ts`             |
+| Role parsing and the `VIEWER` privilege floor           | [StewardSessionResolver.ts](infra/auth/StewardSessionResolver.ts)        | `StewardSessionResolver.test.ts` |
+| Credential handling and boundary schema validation      | [JsonHttpClient.ts](infra/api/JsonHttpClient.ts)                         | `JsonHttpClient.test.ts`         |
+| Role-gated review forwarding                            | [OpportunityService.ts](application/opportunities/OpportunityService.ts) | `OpportunityService.test.ts`     |
 
 Four properties the tests assert directly: the access token never appears in a request URL, only in
 the `Authorization` header; no client component ever receives the session, so the token is never
 serialized into a page payload; an unrecognized or wrong-case role claim resolves to `VIEWER` rather
 than to an empty role set; and an unhandled error maps to a generic 500 that leaks no internal detail.
 
-**Evaluating CDI as a vendor?** [EvidencePack.md](./EvidencePack.md) maps the usual security-review
+**Evaluating Steward as a vendor?** [EvidencePack.md](./EvidencePack.md) maps the usual security-review
 questions to the artifact that answers each one, and states the gaps as plainly as the strengths.
 
 [ThreatModel.md](./ThreatModel.md) sets out the assets, trust boundaries, seven named threats with the
@@ -309,11 +309,15 @@ deployable application, not a library — and does not restrict use of the sourc
 
 ## Project status
 
+> **Formerly "Decionis CDI".** Renamed to Steward in August 2026, before external adoption. The
+> GitHub URL redirects, but releases `v0.1.0`–`v0.1.2` keep `decionis-cdi-*` artifact names — those
+> names are bound into signed provenance attestations and are left as the historical record.
+
 Public and Apache-2.0 licensed. Latest release **v0.1.1**; pre-1.0 and under active development, so
 contracts in `domain/` may change without a deprecation period before `1.0.0` — pin exactly if you
 integrate against those types. [CHANGELOG.md](./CHANGELOG.md) records what has shipped.
 
-Evaluating CDI as a vendor? [EvidencePack.md](./EvidencePack.md) maps the usual security-review
+Evaluating Steward as a vendor? [EvidencePack.md](./EvidencePack.md) maps the usual security-review
 questions to the artifact that answers each, and states the gaps as plainly as the strengths.
 [OpenSource.md](./OpenSource.md) is the record of how this repository was prepared for public
 release, including what was found wrong along the way.

@@ -6,8 +6,8 @@ import { AccountHeader } from "@/components/account/AccountHeader";
 import { AccountPolicy } from "@/components/account/AccountPolicy";
 import { AccountTimeline } from "@/components/account/AccountTimeline";
 import { AppShell } from "@/components/layout/AppShell";
-import { CdiCompositionRoot } from "@/infra/composition/CdiCompositionRoot";
-import { CdiNotFoundError } from "@/infra/errors/CdiErrors";
+import { StewardCompositionRoot } from "@/infra/composition/StewardCompositionRoot";
+import { StewardNotFoundError } from "@/infra/errors/StewardErrors";
 import styles from "@/components/account/Account.module.css";
 
 export const dynamic = "force-dynamic";
@@ -18,7 +18,7 @@ export default async function AccountPage({
   params: Promise<{ id: string }>;
 }) {
   const { id: accountId } = await params;
-  const context = await new CdiCompositionRoot().createServerContext();
+  const context = await new StewardCompositionRoot().createServerContext();
 
   try {
     const [account, opportunities] = await Promise.all([
@@ -47,7 +47,7 @@ export default async function AccountPage({
       </AppShell>
     );
   } catch (error) {
-    if (error instanceof CdiNotFoundError) notFound();
+    if (error instanceof StewardNotFoundError) notFound();
     throw error;
   }
 }

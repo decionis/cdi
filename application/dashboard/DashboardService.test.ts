@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { DashboardService } from "./DashboardService";
-import type { CdiRepository } from "@/infra/repositories/CdiRepository";
+import type { StewardRepository } from "@/infra/repositories/StewardRepository";
 import type { PortfolioSnapshot } from "@/domain/portfolio/PortfolioSnapshot";
 
 describe("DashboardService", () => {
@@ -8,7 +8,7 @@ describe("DashboardService", () => {
     const snapshot = { dataStatus: "DEMO" } as PortfolioSnapshot;
     const repository = {
       getPortfolio: vi.fn().mockResolvedValue(snapshot),
-    } as unknown as CdiRepository;
+    } as unknown as StewardRepository;
 
     await expect(new DashboardService(repository).getPortfolio()).resolves.toBe(
       snapshot,
@@ -20,7 +20,7 @@ describe("DashboardService", () => {
     // portfolio, which an operator would read as "nothing needs attention".
     const repository = {
       getPortfolio: vi.fn().mockRejectedValue(new Error("upstream down")),
-    } as unknown as CdiRepository;
+    } as unknown as StewardRepository;
 
     await expect(
       new DashboardService(repository).getPortfolio(),

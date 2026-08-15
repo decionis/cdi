@@ -1,11 +1,11 @@
-# Contributing to Decionis CDI
+# Contributing to Decionis Steward
 
 Thanks for considering a contribution. This document covers what you need to get running, what the
 review gate is, and — most importantly — the one class of change this project will not accept.
 
-## Before you start: what CDI is not
+## Before you start: what Steward is not
 
-**CDI is not authoritative.** It renders account evidence and forwards operator reviews to the
+**Steward is not authoritative.** It renders account evidence and forwards operator reviews to the
 Decionis platform, which owns policy evaluation, connector credentials, execution grants, Decision
 Dossiers, and the audit ledger.
 
@@ -17,7 +17,7 @@ declined regardless of how well they are implemented:
   database, and adding one changes this repository's risk profile entirely.
 - Falling back to demo fixtures when a live API call fails. Showing an operator fabricated data
   during a regulated decision is a defect, not resilience.
-- Treating CDI's own role check as the security control. It is a UX affordance; the platform
+- Treating Steward's own role check as the security control. It is a UX affordance; the platform
   re-authorizes every review.
 - Adding telemetry, analytics, or any third-party outbound request.
 
@@ -32,8 +32,8 @@ recipes, formatting edge cases — is welcome without asking first.
 You need **Node >= 20** and **pnpm 9**. No Decionis credentials are required.
 
 ```bash
-git clone https://github.com/decionis/cdi.git
-cd cdi
+git clone https://github.com/decionis/steward.git
+cd steward
 cp .env.example .env.local
 pnpm install
 pnpm dev
@@ -118,7 +118,7 @@ request:
 
 ```bash
 pnpm build
-CDI_DATA_MODE=demo pnpm start        # one terminal
+STEWARD_DATA_MODE=demo pnpm start        # one terminal
 pnpm screenshots                     # another
 ```
 
@@ -177,7 +177,7 @@ than as "no privileges". Falls back to VIEWER instead.
 
 ## Licensing of contributions
 
-Decionis CDI is licensed under [Apache-2.0](./LICENSE). Per section 5 of that license, any
+Decionis Steward is licensed under [Apache-2.0](./LICENSE). Per section 5 of that license, any
 contribution you intentionally submit for inclusion is licensed under the same terms, without any
 additional conditions. Your DCO sign-off is your confirmation that you have the right to do so.
 

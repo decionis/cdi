@@ -92,11 +92,11 @@ const bom = {
   metadata: {
     component: {
       type: "application",
-      "bom-ref": `pkg:npm/%40decionis/cdi@${componentVersion}`,
-      name: "@decionis/cdi",
+      "bom-ref": `pkg:npm/%40decionis/steward@${componentVersion}`,
+      name: "@decionis/steward",
       version: componentVersion,
       description:
-        "Governed customer expansion for regulated fintech operations",
+        "Signal capture and decisioning for customer operations teams — correlate usage, support and CRM evidence, surface churn and expansion before the customer calls, and route every operator review through a Decionis policy verdict.",
       licenses: [{ license: { id: "Apache-2.0" } }],
     },
     tools: {

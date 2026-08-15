@@ -1,6 +1,6 @@
 # Security Policy
 
-Decionis CDI is the operator-facing tier of a platform used in regulated fintech operations. We treat
+Decionis Steward is the operator-facing tier of a platform used in regulated enterprise operations. We treat
 reports against it seriously and would rather hear about a suspected issue that turns out to be
 nothing than not hear about a real one.
 
@@ -9,7 +9,7 @@ nothing than not hear about a real one.
 **Do not open a public issue, pull request, or discussion for a suspected vulnerability.**
 
 Report privately through
-**[GitHub Security Advisories](https://github.com/decionis/cdi/security/advisories/new)** — the
+**[GitHub Security Advisories](https://github.com/decionis/steward/security/advisories/new)** — the
 "Report a vulnerability" button on this repository's Security tab. It keeps the report, our
 questions, and any fix coordination in one private thread until a fix ships.
 
@@ -51,14 +51,14 @@ otherwise. We do not currently operate a paid bounty programme.
 contact. Say which system you were testing so it reaches the right team:
 
 - The Decionis platform APIs under `/v1/cdi`, policy evaluation, the `customer_ops` policy pack,
-  connector credentials, execution grants, Decision Dossiers, and the audit ledger. **CDI does not
+  connector credentials, execution grants, Decision Dossiers, and the audit ledger. **Steward does not
   own any of these** — see [ThreatModel.md](./ThreatModel.md) for the boundary.
 - Findings against a Decionis-operated deployment rather than this source code.
 
 **Not accepted as vulnerabilities:**
 
 - The demo operator's `ADMIN` and `APPROVER` roles. Demo mode is a credential-free fixture mode,
-  deliberately privileged so the review flow is exercisable; `CdiRuntimeConfig` defaults production
+  deliberately privileged so the review flow is exercisable; `StewardRuntimeConfig` defaults production
   to live mode. A report that demo mode grants admin rights describes intended behaviour. A report
   that demo mode can be _reached_ in a production configuration is in scope and serious.
 - Missing security headers already documented as accepted risk in

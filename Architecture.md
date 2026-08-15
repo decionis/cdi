@@ -1,17 +1,17 @@
-# CDI Architecture
+# Steward Architecture
 
 ## Trust boundary
 
 ```text
 Browser
-  -> CDI Next.js server / BFF
+  -> Steward Next.js server / BFF
     -> Decionis /v1/cdi APIs
       -> SignalFed, connectors, identity resolution
       -> customer_ops policy pack
       -> execution grants, dossiers, ledger
 ```
 
-The CDI repository owns presentation and server-side orchestration only. The Decionis platform owns
+The Steward repository owns presentation and server-side orchestration only. The Decionis platform owns
 all authoritative customer signals, policy decisions, credentials, and action execution.
 
 ## Directory structure
@@ -19,7 +19,7 @@ all authoritative customer signals, policy decisions, credentials, and action ex
 ```text
 app/                          Next.js routes and framework entrypoints
   accounts/[id]/              Account evidence view
-  api/cdi/                    Browser-facing CDI BFF
+  api/steward/                    Browser-facing Steward BFF
   sign-in/                    Decionis identity handoff
 application/                  Use-case services and permission checks
   accounts/
@@ -30,7 +30,7 @@ components/                   Feature-grouped React presentation
   common/
   dashboard/
   layout/
-domain/                       Typed, runtime-validated CDI contracts
+domain/                       Typed, runtime-validated Steward contracts
   accounts/
   auth/
   common/
@@ -53,17 +53,17 @@ presentation/                 Formatting and presentation policies
 
 ### Demo
 
-Deterministic fixtures are returned by `DemoCdiRepository`. Mutations return a deterministic review
+Deterministic fixtures are returned by `DemoStewardRepository`. Mutations return a deterministic review
 result and do not persist or execute a downstream action.
 
 ### Live
 
-`DecionisCdiRepository` uses the server-only `DecionisCdiGateway`. Responses are parsed through Zod
+`DecionisStewardRepository` uses the server-only `DecionisStewardGateway`. Responses are parsed through Zod
 contracts before entering the application layer. Authentication and organization scope are forwarded
 server-side.
 
 ## Decision safety
 
 The external application may accept an operator review. It cannot directly change a processing limit
-or policy. The core CDI API must create or update the authoritative review, invoke the Decionis policy
+or policy. The core Steward API must create or update the authoritative review, invoke the Decionis policy
 and execution boundary, and return the resulting state and dossier reference.

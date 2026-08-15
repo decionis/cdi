@@ -1,6 +1,6 @@
 # Changelog
 
-All notable changes to Decionis CDI are recorded here. The format follows
+All notable changes to Decionis Steward are recorded here. The format follows
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/), and this project uses
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
@@ -20,12 +20,12 @@ asset rather than living only in GitHub's attestation store.
 ### Added
 
 - The Sigstore bundle for the build-provenance attestation is attached to each release as
-  `decionis-cdi-<version>.sigstore.json`, so a release can be verified from the downloaded files
+  `decionis-steward-<version>.sigstore.json`, so a release can be verified from the downloaded files
   alone:
 
   ```bash
-  gh attestation verify decionis-cdi-0.1.2.tar.gz \
-    --bundle decionis-cdi-0.1.2.sigstore.json --repo decionis/cdi
+  gh attestation verify decionis-steward-0.1.2.tar.gz \
+    --bundle decionis-steward-0.1.2.sigstore.json --repo decionis/steward
   ```
 
   That matters for an air-gapped or mirrored consumer, and for anyone archiving a release rather than
@@ -118,7 +118,7 @@ became something that can be handed to someone outside the team.
 - `gitleaks` across all refs reports no secrets in git history. Only `.env.example` was ever
   committed, and its service-token field is empty.
 
-[unreleased]: https://github.com/decionis/cdi/compare/v0.1.2...HEAD
-[0.1.2]: https://github.com/decionis/cdi/releases/tag/v0.1.2
-[0.1.1]: https://github.com/decionis/cdi/releases/tag/v0.1.1
-[0.1.0]: https://github.com/decionis/cdi/releases/tag/v0.1.0
+[unreleased]: https://github.com/decionis/steward/compare/v0.1.2...HEAD
+[0.1.2]: https://github.com/decionis/steward/releases/tag/v0.1.2
+[0.1.1]: https://github.com/decionis/steward/releases/tag/v0.1.1
+[0.1.0]: https://github.com/decionis/steward/releases/tag/v0.1.0

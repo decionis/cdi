@@ -6,7 +6,7 @@ export default function NotFoundPage() {
     <main className={styles.page}>
       <section className={styles.card}>
         <p className={styles.eyebrow}>Account unavailable</p>
-        <h1>This customer account is not in the current CDI portfolio.</h1>
+        <h1>This customer account is not in the current Steward portfolio.</h1>
         <p>
           It may have been removed, merged, or outside your organization scope.
         </p>

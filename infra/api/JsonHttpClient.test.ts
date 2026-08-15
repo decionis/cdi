@@ -4,7 +4,7 @@
 
 import { describe, expect, it, vi } from "vitest";
 import { z } from "zod";
-import { CdiGatewayError } from "@/infra/errors/CdiErrors";
+import { StewardGatewayError } from "@/infra/errors/StewardErrors";
 import { JsonHttpClient, type FetchClient } from "./JsonHttpClient";
 
 const PayloadSchema = z.object({ ok: z.boolean() });
@@ -136,9 +136,9 @@ describe("JsonHttpClient", () => {
       .get("/v1/cdi/portfolio", PayloadSchema)
       .catch((thrown: unknown) => thrown);
 
-    expect(error).toBeInstanceOf(CdiGatewayError);
-    expect((error as CdiGatewayError).status).toBe(403);
-    expect((error as CdiGatewayError).message).toBe("Org is not entitled");
+    expect(error).toBeInstanceOf(StewardGatewayError);
+    expect((error as StewardGatewayError).status).toBe(403);
+    expect((error as StewardGatewayError).message).toBe("Org is not entitled");
   });
 
   it("falls back to the status text when the error body has no message", async () => {
@@ -151,7 +151,7 @@ describe("JsonHttpClient", () => {
       .get("/v1/cdi/portfolio", PayloadSchema)
       .catch((thrown: unknown) => thrown);
 
-    expect((error as CdiGatewayError).message).toBe("Service Unavailable");
+    expect((error as StewardGatewayError).message).toBe("Service Unavailable");
   });
 
   it("wraps a non-JSON error body rather than throwing on the parse", async () => {
@@ -165,9 +165,9 @@ describe("JsonHttpClient", () => {
       .get("/v1/cdi/portfolio", PayloadSchema)
       .catch((thrown: unknown) => thrown);
 
-    expect(error).toBeInstanceOf(CdiGatewayError);
-    expect((error as CdiGatewayError).status).toBe(502);
-    expect((error as CdiGatewayError).message).toContain("502 Bad Gateway");
+    expect(error).toBeInstanceOf(StewardGatewayError);
+    expect((error as StewardGatewayError).status).toBe(502);
+    expect((error as StewardGatewayError).message).toContain("502 Bad Gateway");
   });
 
   it("treats an empty successful body as an empty object", async () => {
