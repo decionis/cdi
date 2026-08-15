@@ -1,0 +1,82 @@
+name: Scorecard
+
+# OpenSSF Scorecard grades this repository's supply-chain posture against a
+# published rubric — pinned dependencies, branch protection, token permissions,
+# signed releases, CI tests, dangerous workflow patterns.
+#
+# The point is that it is somebody else's rubric. Procurement can cite a
+# third-party number instead of taking our word for the posture, which is a
+# large part of why open-sourcing this tier is worth doing at all.
+#
+# MANUAL-ONLY UNTIL THIS REPOSITORY IS PUBLIC.
+#
+# The automatic triggers were removed after the first run on master failed with
+#   scorecard had an error: ListCommits: ... githubv4.Query:
+#   Resource not accessible by integration
+# Scorecard's GraphQL queries are not available to the default GITHUB_TOKEN on a
+# private or internal repository; it needs a long-lived PAT in repo_token. That
+# is a poor trade today — a classic PAT stored as a secret is a real
+# supply-chain liability, bought in exchange for a score nobody can see, since
+# publish_results requires a public repository and there is no badge without it.
+#
+# So this runs on demand only, and reddens nothing. It is kept rather than
+# deleted because it is a useful dry-run of how we will score, and because the
+# public flip is a small edit away.
+#
+# WHEN THE REPOSITORY GOES PUBLIC, in one change:
+#   1. restore the push / schedule / branch_protection_rule triggers below,
+#   2. set publish_results: true,
+#   3. add the badge to README.md.
+# No PAT is needed once public.
+
+on:
+  workflow_dispatch:
+  # Restore on the public flip:
+  # branch_protection_rule:
+  # push:
+  #   branches: [master]
+  # schedule:
+  #   # Wednesdays 05:00 UTC — offset from the dependency audit (Mon) and CodeQL
+  #   # (Tue) so the three signals arrive separately.
+  #   - cron: "0 5 * * 3"
+
+permissions:
+  contents: read
+
+jobs:
+  analysis:
+    name: analysis
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      security-events: write # upload SARIF to code scanning
+      id-token: write # required by publish_results once enabled
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Run analysis
+        uses: ossf/scorecard-action@2d1146689b8cda280b9bc96326124645441f03bc # v2.4.4
+        with:
+          results_file: scorecard-results.sarif
+          results_format: sarif
+          # See the note at the top of this file before changing.
+          publish_results: false
+
+      - name: Upload results
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: scorecard-results
+          path: scorecard-results.sarif
+          retention-days: 30
+
+      - name: Upload to code scanning
+        # Needs GitHub Code Security while the repository is internal or private.
+        continue-on-error: true
+        uses: github/codeql-action/upload-sarif@c16c0f3f2812ec4bb3750a5ed64873fe2ce0fbef # codeql-bundle-v2.26.3
+        with:
+          sarif_file: scorecard-results.sarif

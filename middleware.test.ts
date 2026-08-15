@@ -176,17 +176,124 @@ describe("middleware — live mode", () => {
 });
 
 describe("middleware — matcher", () => {
-  it("exempts only static assets and the sign-in page", () => {
+  it("exempts only immutable static assets", () => {
     // The matcher is part of the security boundary: anything it excludes is
-    // never seen by the middleware at all.
+    // never seen by the middleware at all, so it receives no policy either.
     expect(config.matcher).toHaveLength(1);
-    for (const exemption of [
-      "_next/static",
-      "_next/image",
-      "favicon.ico",
-      "sign-in",
-    ]) {
+    for (const exemption of ["_next/static", "_next/image", "favicon.ico"]) {
       expect(config.matcher[0]).toContain(exemption);
     }
+  });
+
+  it("matches the sign-in page so it still receives a policy", () => {
+    // sign-in was previously excluded from the matcher to avoid a redirect
+    // loop. That also left the one page an unauthenticated visitor always
+    // reaches with no Content-Security-Policy. It is matched now and allowed
+    // through the session gate explicitly instead.
+    expect(config.matcher[0]).not.toContain("sign-in");
+  });
+});
+
+describe("middleware — Content-Security-Policy", () => {
+  function policyFor(response: Response): string {
+    const policy = response.headers.get("content-security-policy");
+    expect(policy).not.toBeNull();
+    return policy ?? "";
+  }
+
+  it("is applied in demo mode", () => {
+    // A demo deployment is public-facing. The policy is not a live-mode
+    // concern, and gating it behind the session check would have left the
+    // public demo without one.
+    vi.stubEnv("CDI_DATA_MODE", "demo");
+
+    expect(policyFor(middleware(request("/")))).toContain("default-src 'self'");
+  });
+
+  it("is applied to an authenticated live request", () => {
+    vi.stubEnv("CDI_DATA_MODE", "live");
+
+    expect(policyFor(middleware(request("/", validSession)))).toContain(
+      "default-src 'self'",
+    );
+  });
+
+  it("is applied to a 401 refusal", () => {
+    // A refused request is still a response leaving this application.
+    vi.stubEnv("CDI_DATA_MODE", "live");
+
+    const response = middleware(request("/api/cdi/portfolio"));
+
+    expect(response.status).toBe(401);
+    expect(policyFor(response)).toContain("default-src 'self'");
+  });
+
+  it("is applied to a sign-in redirect", () => {
+    vi.stubEnv("CDI_DATA_MODE", "live");
+
+    const response = middleware(request("/accounts/acct-atlas"));
+
+    expect(response.status).toBe(307);
+    expect(policyFor(response)).toContain("default-src 'self'");
+  });
+
+  it("is applied to the unauthenticated sign-in page", () => {
+    vi.stubEnv("CDI_DATA_MODE", "live");
+
+    const response = middleware(request("/sign-in"));
+
+    expect(isPassThrough(response)).toBe(true);
+    expect(policyFor(response)).toContain("default-src 'self'");
+  });
+
+  it("forbids framing, plugins, and base-tag hijacking", () => {
+    vi.stubEnv("CDI_DATA_MODE", "demo");
+    const policy = policyFor(middleware(request("/")));
+
+    expect(policy).toContain("frame-ancestors 'none'");
+    expect(policy).toContain("object-src 'none'");
+    expect(policy).toContain("base-uri 'self'");
+    expect(policy).toContain("form-action 'self'");
+  });
+
+  it("never allows inline or eval script in production", () => {
+    // The whole point of the nonce. If these ever appear in a production
+    // policy, the CSP is decorative.
+    vi.stubEnv("CDI_DATA_MODE", "live");
+    vi.stubEnv("NODE_ENV", "production");
+
+    const scriptSrc = policyFor(middleware(request("/", validSession)))
+      .split(";")
+      .map((directive) => directive.trim())
+      .find((directive) => directive.startsWith("script-src"));
+
+    expect(scriptSrc).toBeDefined();
+    expect(scriptSrc).not.toContain("'unsafe-inline'");
+    expect(scriptSrc).not.toContain("'unsafe-eval'");
+    expect(scriptSrc).toContain("'strict-dynamic'");
+  });
+
+  it("issues a fresh nonce for every request", () => {
+    // A reused nonce is no better than 'unsafe-inline'.
+    vi.stubEnv("CDI_DATA_MODE", "demo");
+
+    const nonces = Array.from({ length: 5 }, () => {
+      const match = /'nonce-([^']+)'/.exec(policyFor(middleware(request("/"))));
+      return match?.[1];
+    });
+
+    expect(nonces.every(Boolean)).toBe(true);
+    expect(new Set(nonces).size).toBe(5);
+  });
+
+  it("forwards the nonce to the app so Next can stamp its own scripts", () => {
+    vi.stubEnv("CDI_DATA_MODE", "demo");
+
+    const response = middleware(request("/"));
+    const forwarded = response.headers.get("x-middleware-request-x-nonce");
+    const policyNonce = /'nonce-([^']+)'/.exec(policyFor(response))?.[1];
+
+    expect(forwarded).toBeTruthy();
+    expect(forwarded).toBe(policyNonce);
   });
 });

@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/logo.png" alt="Decionis" width="88" height="88" />
+</p>
+
 # Decionis CDI
 
 **Governed customer expansion for regulated fintech operations.**
@@ -129,6 +133,38 @@ Every upstream response is parsed through a Zod contract in `domain/` before it 
 application layer, so schema drift upstream fails loudly at the boundary instead of rendering as a
 subtly wrong number on a dashboard.
 
+## Deployment
+
+`next.config.ts` sets `output: "standalone"`, so the build emits a self-contained server. The
+included [Dockerfile](./Dockerfile) packages it:
+
+```bash
+docker build -t decionis-cdi .
+docker run -p 3000:3000 decionis-cdi          # demo mode, no credentials
+```
+
+```bash
+docker run -p 3000:3000 \
+  -e CDI_DATA_MODE=live \
+  -e DECIONIS_API_BASE_URL=https://api.decionis.com \
+  decionis-cdi                                 # live mode
+```
+
+The image runs as a non-root user, disables Next telemetry, and declares a `HEALTHCHECK` against
+`/api/health` — which is exempt from the session middleware precisely so probes work without a
+Decionis session.
+
+If you deploy without Docker, note that `.next/standalone` is **not** self-sufficient: `next build`
+emits static assets separately, and `.next/static` must be copied alongside the server. The Dockerfile
+and [release workflow](.github/workflows/release.yml) both do this.
+
+Tagged releases ship a deployable tarball, a CycloneDX SBOM, and a signed SLSA provenance
+attestation. Verify an artifact came from this repository before deploying it:
+
+```bash
+gh attestation verify decionis-cdi-<version>.tar.gz --repo decionis/cdi
+```
+
 ## Architecture
 
 Four layers, one direction of dependency: `app` → `application` → `domain`, with `infra` supplying
@@ -162,9 +198,10 @@ pnpm licenses:list    # Production dependency licenses
 
 `pnpm verify` is the gate — run it before opening a pull request.
 
-CI runs it on Node 20 and 22 (`.github/workflows/verify.yml`), and separately runs `pnpm audit --prod`
-and `pnpm licenses:check` (`.github/workflows/audit.yml`), the latter two also on a weekly schedule so
-an advisory published against an unchanged tree still surfaces. All three must pass to merge.
+CI runs it on Node 20 and 22 (`.github/workflows/verify.yml`), and separately runs the supply-chain
+gate (`.github/workflows/audit.yml`) — a production-tree audit at any severity, a whole-tree audit at
+high and critical, and the license policy check — on every pull request and again weekly, so an
+advisory published against an unchanged tree still surfaces.
 
 ### Dependency policy
 
@@ -212,6 +249,9 @@ Four properties the tests assert directly: the access token never appears in a r
 the `Authorization` header; no client component ever receives the session, so the token is never
 serialized into a page payload; an unrecognized or wrong-case role claim resolves to `VIEWER` rather
 than to an empty role set; and an unhandled error maps to a generic 500 that leaks no internal detail.
+
+**Evaluating CDI as a vendor?** [EvidencePack.md](./EvidencePack.md) maps the usual security-review
+questions to the artifact that answers each one, and states the gaps as plainly as the strengths.
 
 [ThreatModel.md](./ThreatModel.md) sets out the assets, trust boundaries, seven named threats with the
 code and test backing each mitigation, the security headers this app sets — and, deliberately, the

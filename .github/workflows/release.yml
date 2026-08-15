@@ -1,0 +1,173 @@
+name: Release
+
+# Produces a deployable bundle with the two artifacts an enterprise buyer's
+# procurement process increasingly requires as a hard gate rather than a
+# differentiator:
+#
+#   1. A CycloneDX SBOM, generated from the actual resolved tree on the target
+#      platform rather than from package.json. The repository's checked-in
+#      inventory is macOS-generated and platform-conditional (@img/sharp-* and
+#      @next/swc-* resolve per-architecture), so only an SBOM built here matches
+#      what actually ships.
+#   2. A signed SLSA build-provenance attestation binding the tarball to this
+#      workflow, this commit, and this runner — so a recipient can verify the
+#      artifact came from this source and not from someone's laptop.
+#
+# Run it by pushing a v* tag, or manually with dry_run to exercise the whole
+# pipeline without publishing a release.
+
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Build and attest, but do not create a release"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: build, attest, publish
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: write # create the release
+      id-token: write # sigstore signing for provenance
+      attestations: write # record the attestation
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Verify
+        # Never publish an artifact that would not have passed the PR gate.
+        run: pnpm verify
+
+      - name: Re-check supply chain at release time
+        # The tree passed on merge; that may have been weeks ago.
+        run: |
+          pnpm audit --prod
+          pnpm licenses:check
+
+      - name: Assemble the deployable bundle
+        id: bundle
+        run: |
+          set -euo pipefail
+          version="${GITHUB_REF_NAME#v}"
+          [ "$GITHUB_REF_TYPE" = "tag" ] || version="0.0.0-${GITHUB_SHA:0:7}"
+          name="decionis-cdi-${version}"
+
+          # next.config.ts sets output: "standalone". That directory is not
+          # self-sufficient — the static assets are emitted separately and must
+          # be placed alongside it for the bundled server to serve them.
+          mkdir -p "dist/${name}"
+          cp -R .next/standalone/. "dist/${name}/"
+          mkdir -p "dist/${name}/.next"
+          cp -R .next/static "dist/${name}/.next/static"
+          [ -d public ] && cp -R public "dist/${name}/public" || true
+
+          tar -czf "${name}.tar.gz" -C dist "${name}"
+          echo "version=${version}" >> "$GITHUB_OUTPUT"
+          echo "tarball=${name}.tar.gz" >> "$GITHUB_OUTPUT"
+          echo "sha256=$(sha256sum "${name}.tar.gz" | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+
+      - name: Generate CycloneDX SBOM
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
+        with:
+          path: .
+          format: cyclonedx-json
+          artifact-name: "decionis-cdi-${{ steps.bundle.outputs.version }}.cdx.json"
+          output-file: "decionis-cdi-${{ steps.bundle.outputs.version }}.cdx.json"
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
+        with:
+          subject-path: ${{ steps.bundle.outputs.tarball }}
+
+      - name: Upload artifacts for inspection
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: release-${{ steps.bundle.outputs.version }}
+          path: |
+            ${{ steps.bundle.outputs.tarball }}
+            decionis-cdi-${{ steps.bundle.outputs.version }}.cdx.json
+          retention-days: 30
+
+      - name: Publish release
+        if: github.event_name == 'push' && github.ref_type == 'tag' && inputs.dry_run != true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.bundle.outputs.version }}
+          TARBALL: ${{ steps.bundle.outputs.tarball }}
+          DIGEST: ${{ steps.bundle.outputs.sha256 }}
+        run: |
+          set -euo pipefail
+          cat > notes.md <<'NOTES'
+          ## Artifacts
+
+          | File | What it is |
+          | ---- | ---------- |
+          | `__TARBALL__` | Deployable Next.js standalone bundle |
+          | `decionis-cdi-__VERSION__.cdx.json` | CycloneDX SBOM of the resolved production tree |
+
+          SHA-256 of the tarball:
+
+          ```
+          __DIGEST__
+          ```
+
+          ## Verifying provenance
+
+          This build carries a signed SLSA provenance attestation. Verify it against
+          this repository before deploying:
+
+          ```bash
+          gh attestation verify __TARBALL__ --repo decionis/cdi
+          ```
+
+          That confirms the artifact was produced by this workflow from this commit,
+          not rebuilt elsewhere.
+
+          ## Licensing
+
+          Apache-2.0. Third-party components are inventoried in ThirdPartyLicenses.md;
+          the SBOM attached here is the deployment-accurate equivalent, generated on
+          the Linux build platform.
+          NOTES
+
+          # Pure bash rather than sed -i, whose in-place syntax differs between
+          # GNU and BSD; this also stays testable on a developer's machine.
+          notes=$(cat notes.md)
+          notes=${notes//__TARBALL__/$TARBALL}
+          notes=${notes//__VERSION__/$VERSION}
+          notes=${notes//__DIGEST__/$DIGEST}
+          printf '%s\n' "$notes" > notes.md
+
+          gh release create "${GITHUB_REF_NAME}" \
+            --repo "${GITHUB_REPOSITORY}" \
+            --title "Decionis CDI ${VERSION}" \
+            --notes-file notes.md \
+            "${TARBALL}" \
+            "decionis-cdi-${VERSION}.cdx.json"
