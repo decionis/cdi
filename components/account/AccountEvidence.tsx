@@ -1,4 +1,5 @@
 import { Database, Link2 } from "lucide-react";
+import { RelativeTime } from "@/components/common/RelativeTime";
 import type { EvidenceSignal } from "@/domain/evidence/EvidenceSignal";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { CdiFormat } from "@/presentation/format/CdiFormat";
@@ -27,7 +28,9 @@ export function AccountEvidence({ evidence }: { evidence: EvidenceSignal[] }) {
               <StatusBadge tone={impactTone(signal.impact)}>
                 {signal.category}
               </StatusBadge>
-              <span>{CdiFormat.relativeTime(signal.observedAt)}</span>
+              <span>
+                <RelativeTime value={signal.observedAt} />
+              </span>
             </div>
             <h3>{signal.title}</h3>
             <p>{signal.detail}</p>

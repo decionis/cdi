@@ -1,7 +1,7 @@
 import { Cable } from "lucide-react";
+import { RelativeTime } from "@/components/common/RelativeTime";
 import type { ConnectorHealth } from "@/domain/accounts/CustomerAccount";
 import { StatusBadge } from "@/components/common/StatusBadge";
-import { CdiFormat } from "@/presentation/format/CdiFormat";
 import styles from "./Account.module.css";
 
 function healthTone(health: ConnectorHealth["health"]) {
@@ -30,9 +30,13 @@ export function AccountConnections({
             <div>
               <strong>{connector.name}</strong>
               <small>
-                {connector.lastSyncAt
-                  ? `Synced ${CdiFormat.relativeTime(connector.lastSyncAt)}`
-                  : "Not yet synchronized"}
+                {connector.lastSyncAt ? (
+                  <>
+                    Synced <RelativeTime value={connector.lastSyncAt} />
+                  </>
+                ) : (
+                  "Not yet synchronized"
+                )}
               </small>
             </div>
             <StatusBadge tone={healthTone(connector.health)} dot>

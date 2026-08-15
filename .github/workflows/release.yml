@@ -148,7 +148,36 @@ jobs:
         # find. Do not rename this to .intoto.jsonl to satisfy the other probe:
         # a Sigstore bundle is not in-toto JSON Lines, and the filename should
         # describe the contents.
-        run: cp "${{ steps.attest.outputs.bundle-path }}" "decionis-cdi-${{ steps.bundle.outputs.version }}.sigstore.json"
+        env:
+          BUNDLE: ${{ steps.attest.outputs.bundle-path }}
+          VERSION: ${{ steps.bundle.outputs.version }}
+        run: |
+          set -euo pipefail
+          cp "$BUNDLE" "decionis-cdi-${VERSION}.sigstore.json"
+
+          # Also emit the signed DSSE envelope as in-toto JSON Lines, the
+          # format SLSA tooling and Scorecard's provenance probe expect. This is
+          # a format conversion, not a rename: the envelope's payloadType is
+          # application/vnd.in-toto+json and its payload is an in-toto
+          # Statement v1 carrying a slsa.dev/provenance/v1 predicate. One
+          # envelope, so one line.
+          node -e '
+            const fs = require("fs");
+            const bundle = JSON.parse(fs.readFileSync(process.env.BUNDLE, "utf8"));
+            const envelope = bundle.dsseEnvelope;
+            if (!envelope) throw new Error("attestation bundle has no dsseEnvelope");
+            const payload = JSON.parse(
+              Buffer.from(envelope.payload, "base64").toString("utf8"),
+            );
+            if (payload._type !== "https://in-toto.io/Statement/v1") {
+              throw new Error("payload is not an in-toto Statement v1: " + payload._type);
+            }
+            fs.writeFileSync(
+              `decionis-cdi-${process.env.VERSION}.intoto.jsonl`,
+              JSON.stringify(envelope) + "\n",
+            );
+            console.log("in-toto statement subject:", payload.subject[0].name);
+          '
 
       - name: Upload artifacts for inspection
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -158,6 +187,7 @@ jobs:
             ${{ steps.bundle.outputs.tarball }}
             decionis-cdi-${{ steps.bundle.outputs.version }}.cdx.json
             decionis-cdi-${{ steps.bundle.outputs.version }}.sigstore.json
+            decionis-cdi-${{ steps.bundle.outputs.version }}.intoto.jsonl
           retention-days: 30
 
       - name: Publish release
@@ -177,6 +207,7 @@ jobs:
           | `__TARBALL__` | Deployable Next.js standalone bundle |
           | `decionis-cdi-__VERSION__.cdx.json` | CycloneDX SBOM of the resolved production tree |
           | `decionis-cdi-__VERSION__.sigstore.json` | Sigstore bundle for the provenance attestation |
+          | `decionis-cdi-__VERSION__.intoto.jsonl` | The same attestation as a signed in-toto statement |
 
           SHA-256 of the tarball:
 
@@ -225,4 +256,5 @@ jobs:
             --notes-file notes.md \
             "${TARBALL}" \
             "decionis-cdi-${VERSION}.cdx.json" \
-            "decionis-cdi-${VERSION}.sigstore.json"
+            "decionis-cdi-${VERSION}.sigstore.json" \
+            "decionis-cdi-${VERSION}.intoto.jsonl"
