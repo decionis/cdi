@@ -143,9 +143,16 @@ section should stop saying the code "is not yet open source".
       days old, and `Code-Review` counts approving reviews, of which a solo maintainer merging via
       bypass has none. `Signed-Releases` scored 0 correctly — the check inspects release assets and
       the provenance lived only in GitHub's attestation store; releases now carry it.
-- [ ] **Stand up the public demo** on `STEWARD_DATA_MODE=demo` using the [Dockerfile](./Dockerfile).
-      `next.config.ts` sets `X-Robots-Tag: noindex, nofollow, noarchive`; drop that header on the demo
-      host only if discoverability matters.
+- [x] **Public demo live at [decionis-steward.vercel.app](https://decionis-steward.vercel.app).**
+      Deployed with `STEWARD_DATA_MODE=demo` and verified against the deployed instance: health probe
+      200, portfolio serving `DEMO` with four accounts, every security header present with a fresh CSP
+      nonce per request, React hydrated, and a review `POST` returning 200 under the policy. Two
+      things worth knowing next time: Vercel created the project with deployment protection on, which
+      302s every alias to an SSO page — correct for a preview, wrong for a public demo, and it must be
+      turned off explicitly; and `steward-demo.vercel.app` is taken globally, so Vercel assigned a
+      `-zeta` suffix, which is why the alias follows the `decionis-*` family instead.
+      `X-Robots-Tag: noindex, nofollow, noarchive` is left in place, so the demo will not be indexed —
+      dropping it in `next.config.ts` is a discoverability decision rather than a technical one.
 - [ ] **Announce.** Not before the above. The repository gets one first impression, and the buyers who
       look earliest are the ones who matter most.
 
