@@ -39,7 +39,7 @@ const SHOTS = [
   },
   {
     file: "screenshot-account-detail.png",
-    path: "/accounts/acct-atlas",
+    path: "/accounts/acct-kilo",
     description: "Account evidence, policy, and decision timeline",
   },
 ];

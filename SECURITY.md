@@ -48,7 +48,8 @@ otherwise. We do not currently operate a paid bounty programme.
 - Authentication or authorization bypass, cross-organization data exposure, credential leakage into
   client-side code or logs, injection, and dependency vulnerabilities reachable from this codebase.
 
-**Out of scope — report to the Decionis platform security contact instead:**
+**Out of scope — report to <security@decionis.com> instead**, which is also the platform security
+contact. Say which system you were testing so it reaches the right team:
 
 - The Decionis platform APIs under `/v1/cdi`, policy evaluation, the `customer_ops` policy pack,
   connector credentials, execution grants, Decision Dossiers, and the audit ledger. **CDI does not

@@ -229,11 +229,11 @@ describe("CdiSessionResolver — display name", () => {
       config("live"),
     ).resolveRequestSession(
       request({
-        cookies: { ...liveCookies, decionis_display_name: "Amina%20Okafor" },
+        cookies: { ...liveCookies, decionis_display_name: "Erin%20Example" },
       }),
     );
 
-    expect(session.displayName).toBe("Amina Okafor");
+    expect(session.displayName).toBe("Erin Example");
   });
 
   it("falls back to a generic name when none is supplied", () => {
