@@ -52,6 +52,38 @@ jobs:
           queries: security-and-quality
 
       - name: Perform analysis
+        id: analyze
+        # The analysis itself always runs. Only the SARIF upload needs the
+        # entitlement, and it fails with:
+        #   "Code Security must be enabled for this repository to use code scanning"
+        # A check that cannot succeed teaches people to ignore CI, so this does
+        # not fail the job — but the next step makes the gap loud rather than
+        # letting it pass silently, which would be worse.
+        #
+        # REMOVE continue-on-error ONCE CODE SECURITY IS ENABLED, so that a real
+        # analysis failure blocks again.
+        continue-on-error: true
         uses: github/codeql-action/analyze@c16c0f3f2812ec4bb3750a5ed64873fe2ce0fbef # codeql-bundle-v2.26.3
         with:
           category: "/language:javascript-typescript"
+
+      - name: Report analysis outcome
+        run: |
+          set -euo pipefail
+          if [ "${{ steps.analyze.outcome }}" = "success" ]; then
+            echo "CodeQL results uploaded to code scanning." >> "$GITHUB_STEP_SUMMARY"
+            exit 0
+          fi
+
+          echo "::warning title=CodeQL results were not uploaded::Code Security is not enabled for this repository, so code scanning rejected the SARIF upload. The analysis ran; nobody can see the results."
+          {
+            echo "### CodeQL did not publish results"
+            echo
+            echo "The analysis completed, but uploading to code scanning requires **GitHub Code"
+            echo "Security**, which is not enabled for this repository. It is free on public"
+            echo "repositories; on an internal or private one it needs the entitlement."
+            echo
+            echo "Until then this workflow burns CI minutes and surfaces nothing. Either enable"
+            echo "Code Security, or disable this workflow and say so in OpenSource.md — a check"
+            echo "that silently finds nothing is worse than no check."
+          } >> "$GITHUB_STEP_SUMMARY"

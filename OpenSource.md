@@ -183,8 +183,17 @@ This is where an enterprise buyer's opinion is actually formed.
    which for a fintech repository about to go public is the expensive half. All four toggles need
    repo admin.
 
-   **CodeQL requires GitHub Code Security while this repository is internal**; on a public repository
-   it needs no entitlement. If the analysis step fails with a 403, that is why.
+   **CodeQL runs but cannot publish.** Confirmed on the first PR run: the analysis completes — the
+   database builds, every query runs, SARIF is exported — and then the upload is rejected with
+   _"Code Security must be enabled for this repository to use code scanning."_ It is free on public
+   repositories; on an internal one it needs the entitlement.
+
+   The upload step is therefore `continue-on-error` with a loud warning annotation and a job summary,
+   rather than either a permanently red check (which teaches people to ignore CI) or a silent pass
+   (which is the "looks green, ran nothing" failure this plan already fixed once). **Remove
+   `continue-on-error` as soon as Code Security is enabled**, so a genuine analysis failure blocks
+   again. If the entitlement is not coming, delete the workflow and record that decision here — a
+   check that silently finds nothing is worse than no check.
 
 9. ✅ **OpenSSF Scorecard workflow added**, and deliberately not yet publishing.
    [`scorecard.yml`](../.github/workflows/scorecard.yml) runs weekly with `publish_results: false`,
