@@ -66,9 +66,11 @@ Do not treat their absence today as an oversight. They are stage two.
       checks, using the command in step 5 below, so CodeQL blocks a merge rather than merely
       reporting.
 
-## The flip
+## The flip — done
 
-Run these in order. Steps 2–6 are a single pull request.
+Executed on 2026-08-15. Steps 3–6 landed as one pull request; steps 1 and 2 are repository settings.
+Kept below as the record of what was changed and why, and as the reference if any of it needs
+revisiting.
 
 ### 1. Re-scan, then flip visibility
 

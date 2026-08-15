@@ -1,14 +1,11 @@
 blank_issues_enabled: false
 contact_links:
-  # Points at SECURITY.md rather than the advisory form: GitHub's private
-  # vulnerability reporting is public-repository-only, so the advisory URL 404s
-  # while this repository is internal. Swap it to
-  # https://github.com/decionis/cdi/security/advisories/new on the public flip.
   - name: Report a security vulnerability
-    url: https://github.com/decionis/cdi/blob/master/SECURITY.md
+    url: https://github.com/decionis/cdi/security/advisories/new
     about: >
-      Report privately by email — see SECURITY.md. Never open a public issue for an authentication
-      bypass, role-check bypass, credential leak, or cross-organization data exposure.
+      Report privately through GitHub Security Advisories. Never open a public issue for an
+      authentication bypass, role-check bypass, credential leak, or cross-organization data
+      exposure.
   - name: Decionis platform issue
     url: https://decionis.com/support
     about: >

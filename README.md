@@ -4,6 +4,11 @@
 
 # Decionis CDI
 
+[![Verify](https://github.com/decionis/cdi/actions/workflows/verify.yml/badge.svg)](https://github.com/decionis/cdi/actions/workflows/verify.yml)
+[![Audit](https://github.com/decionis/cdi/actions/workflows/audit.yml/badge.svg)](https://github.com/decionis/cdi/actions/workflows/audit.yml)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/decionis/cdi/badge)](https://scorecard.dev/viewer/?uri=github.com/decionis/cdi)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](./LICENSE)
+
 **Governed customer expansion for regulated fintech operations.**
 
 CDI is the operational control center for Adaptive Customer Decision Intelligence. It gives customer
@@ -304,6 +309,11 @@ deployable application, not a library — and does not restrict use of the sourc
 
 ## Project status
 
-Version 0.1.0, pre-1.0 and under active development. Contracts in `domain/` may change without a
-deprecation period until the first tagged release. [OpenSource.md](./OpenSource.md) tracks the
-remaining work toward a public launch.
+Public and Apache-2.0 licensed. Latest release **v0.1.1**; pre-1.0 and under active development, so
+contracts in `domain/` may change without a deprecation period before `1.0.0` — pin exactly if you
+integrate against those types. [CHANGELOG.md](./CHANGELOG.md) records what has shipped.
+
+Evaluating CDI as a vendor? [EvidencePack.md](./EvidencePack.md) maps the usual security-review
+questions to the artifact that answers each, and states the gaps as plainly as the strengths.
+[OpenSource.md](./OpenSource.md) is the record of how this repository was prepared for public
+release, including what was found wrong along the way.
