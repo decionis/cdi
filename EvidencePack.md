@@ -102,9 +102,10 @@ control is captioned "Records a review only; no downstream limit is changed."
 | Secrets in this repository              | **None.** No credential, key, or connector secret is present or required.          |
 | Sub-processors introduced by this tier  | **None.**                                                                          |
 | Security headers                        | Seven set globally — tabulated in [ThreatModel.md](./ThreatModel.md).              |
-| Content-Security-Policy                 | **Not yet set.** Disclosed as the most significant known gap.                      |
-| Penetration test report                 | Not yet commissioned.                                                              |
+| Content-Security-Policy                 | **Yes**, nonce-based, per request, no `unsafe-inline`/`unsafe-eval` on scripts.    |
+| Penetration test report                 | **Not yet commissioned.**                                                          |
 | SOC 2 / ISO 27001                       | Certifications belong to the Decionis platform, not to this repository.            |
+| Rate limiting in this tier              | **None.** Expected at the edge or upstream.                                        |
 
 The last three are deliberately in this table. A reviewer finds gaps faster than we can hide them,
 and a vendor that states its own weak spots is easier to trust on the rest.

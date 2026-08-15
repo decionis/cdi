@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/logo.png" alt="Decionis" width="88" height="88" />
+</p>
+
 # Decionis CDI
 
 **Governed customer expansion for regulated fintech operations.**
