@@ -124,9 +124,31 @@ jobs:
           fi
 
       - name: Attest build provenance
+        id: attest
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-path: ${{ steps.bundle.outputs.tarball }}
+
+      - name: Publish the attestation alongside the artifact
+        # The attestation is already stored by GitHub and `gh attestation verify`
+        # finds it there. Attaching the Sigstore bundle to the release as well
+        # means it can be verified from the downloaded files alone:
+        #
+        #   gh attestation verify decionis-cdi-<version>.tar.gz \
+        #     --bundle decionis-cdi-<version>.sigstore.json --repo decionis/cdi
+        #
+        # That matters for an air-gapped or mirrored consumer, and for anyone
+        # archiving a release: the tarball, its SBOM and its provenance travel
+        # together instead of one of the three living only in an API.
+        #
+        # The .sigstore.json name is what the file is, and is also one of the
+        # suffixes OpenSSF Scorecard's Signed-Releases check recognises. That
+        # check scored 0 here while the provenance was real but unpublished —
+        # correctly, since it inspects release assets and there was nothing to
+        # find. Do not rename this to .intoto.jsonl to satisfy the other probe:
+        # a Sigstore bundle is not in-toto JSON Lines, and the filename should
+        # describe the contents.
+        run: cp "${{ steps.attest.outputs.bundle-path }}" "decionis-cdi-${{ steps.bundle.outputs.version }}.sigstore.json"
 
       - name: Upload artifacts for inspection
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -135,6 +157,7 @@ jobs:
           path: |
             ${{ steps.bundle.outputs.tarball }}
             decionis-cdi-${{ steps.bundle.outputs.version }}.cdx.json
+            decionis-cdi-${{ steps.bundle.outputs.version }}.sigstore.json
           retention-days: 30
 
       - name: Publish release
@@ -153,6 +176,7 @@ jobs:
           | ---- | ---------- |
           | `__TARBALL__` | Deployable Next.js standalone bundle |
           | `decionis-cdi-__VERSION__.cdx.json` | CycloneDX SBOM of the resolved production tree |
+          | `decionis-cdi-__VERSION__.sigstore.json` | Sigstore bundle for the provenance attestation |
 
           SHA-256 of the tarball:
 
@@ -171,6 +195,14 @@ jobs:
 
           That confirms the artifact was produced by this workflow from this commit,
           not rebuilt elsewhere.
+
+          The attestation is also attached here, so it can be verified from the
+          downloaded files alone without reaching GitHub's attestation API:
+
+          ```bash
+          gh attestation verify __TARBALL__ \
+            --bundle decionis-cdi-__VERSION__.sigstore.json --repo decionis/cdi
+          ```
 
           ## Licensing
 
@@ -192,4 +224,5 @@ jobs:
             --title "Decionis CDI ${VERSION}" \
             --notes-file notes.md \
             "${TARBALL}" \
-            "decionis-cdi-${VERSION}.cdx.json"
+            "decionis-cdi-${VERSION}.cdx.json" \
+            "decionis-cdi-${VERSION}.sigstore.json"
