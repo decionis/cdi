@@ -90,6 +90,21 @@ Commit the lockfile with your change. CI installs with `--frozen-lockfile` and w
 - Full rules in [coding.rule.md](./coding.rule.md); layer boundaries in
   [Architecture.md](./Architecture.md).
 
+### Screenshots
+
+If your change alters what the interface looks like, regenerate the README images in the same pull
+request:
+
+```bash
+pnpm build
+CDI_DATA_MODE=demo pnpm start        # one terminal
+pnpm screenshots                     # another
+```
+
+The script refuses to run unless the server reports `dataStatus: DEMO` — these images are published,
+and live mode would put real customer names and processing limits in them. It uses Playwright's
+bundled Chromium, falling back to system Chrome where that download is unavailable.
+
 ### Tests
 
 Tests sit next to the code they cover, named `X.test.ts`. Server-side tests need a docblock:
