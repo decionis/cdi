@@ -1,0 +1,57 @@
+#!/bin/sh
+#
+# Pre-commit gate: formatting and Markdown links.
+#
+# Native git hook rather than husky, deliberately. husky installs a
+# devDependency and a postinstall script that runs on every install; for a
+# repository that pins every GitHub Action by SHA and publishes a threat model,
+# a committed shell script anyone can read is the better trade. `pnpm prepare`
+# points core.hooksPath here.
+#
+# This CHECKS rather than fixes. Reformatting files mid-commit rewrites content
+# the author did not stage — and with a partially staged file it commits a
+# version that was never reviewed. Failing with the command to run is
+# predictable; silently editing is not.
+#
+# It is not the gate. `git commit --no-verify` bypasses it and CI does not, so
+# both checks also run in .github/workflows/verify.yml. This exists to catch
+# them in two seconds instead of two minutes.
+
+set -eu
+
+staged=$(git diff --cached --name-only --diff-filter=ACMR)
+[ -n "$staged" ] || exit 0
+
+fail=0
+
+# --- Formatting --------------------------------------------------------------
+# Prettier owns everything it understands, Markdown included. Filtering to
+# staged files keeps the hook fast on a large tree, and --ignore-unknown means
+# binary and unsupported files pass through rather than erroring.
+formattable=$(printf '%s\n' "$staged" | grep -E '\.(ts|tsx|js|jsx|mjs|cjs|json|css|md|ya?ml)$' || true)
+
+if [ -n "$formattable" ]; then
+  if ! printf '%s\n' "$formattable" | xargs pnpm exec prettier --check --ignore-unknown >/dev/null 2>&1; then
+    printf '\n  Formatting: some staged files are not formatted.\n'
+    printf '    Fix with:  pnpm format:fix\n'
+    fail=1
+  fi
+fi
+
+# --- Markdown links ----------------------------------------------------------
+# Checks the whole set of tracked Markdown rather than only staged files: moving
+# or deleting a file breaks links in documents that were not touched by this
+# commit, and those are exactly the breakages nobody notices.
+markdown=$(printf '%s\n' "$staged" | grep -E '\.md$' || true)
+
+if [ -n "$markdown" ]; then
+  if ! node scripts/CheckMarkdownLinks.mjs; then
+    printf '    Checked because this commit touches Markdown.\n'
+    fail=1
+  fi
+fi
+
+if [ "$fail" -ne 0 ]; then
+  printf '\n  Commit aborted. Use --no-verify to bypass; CI will still run both.\n\n'
+  exit 1
+fi

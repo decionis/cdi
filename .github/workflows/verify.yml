@@ -59,6 +59,16 @@ jobs:
         # format -> lint -> typecheck -> test -> build
         run: pnpm verify
 
+      - name: Markdown links
+        # Also enforced by the pre-commit hook, which `git commit --no-verify`
+        # bypasses. This is the copy that cannot be skipped.
+        #
+        # Documentation is the product for a repository handed to reviewers, and
+        # OpenSource.md once carried fifteen links resolving outside the
+        # repository — including the ones to SECURITY.md and EvidencePack.md.
+        if: matrix.node == '22'
+        run: pnpm links:check
+
       - name: Coverage
         # Runs on one Node version only. Coverage is a property of the tests,
         # not of the runtime, so measuring it twice costs time and reports the
