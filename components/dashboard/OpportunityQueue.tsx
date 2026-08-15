@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { RelativeTime } from "@/components/common/RelativeTime";
 import { ArrowRight, FileKey2 } from "lucide-react";
 import type { CustomerOpportunity } from "@/domain/opportunities/CustomerOpportunity";
 import { CdiFormat } from "@/presentation/format/CdiFormat";
@@ -42,7 +43,9 @@ export function OpportunityQueue({
                   {opportunity.disposition}
                 </StatusBadge>
                 <span>{opportunity.kind.replaceAll("_", " ")}</span>
-                <span>{CdiFormat.relativeTime(opportunity.createdAt)}</span>
+                <span>
+                  <RelativeTime value={opportunity.createdAt} />
+                </span>
               </div>
               <h3>{opportunity.title}</h3>
               <Link

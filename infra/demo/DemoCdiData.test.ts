@@ -90,6 +90,38 @@ describe("DemoCdiData — provenance", () => {
   });
 });
 
+describe("DemoCdiData — freshness", () => {
+  // Timestamps are relative to read time. They were absolute until
+  // CdiFormat.relativeTime stopped defaulting `now` to a hardcoded date, at
+  // which point the demo started rendering "Jul 10" everywhere — a public demo
+  // that looks abandoned. This fails if anyone reintroduces a fixed instant.
+  const HOUR = 60 * 60 * 1000;
+
+  it("generates the snapshot at read time", () => {
+    const age = Date.now() - new Date(portfolio.generatedAt).getTime();
+    expect(age).toBeGreaterThanOrEqual(0);
+    expect(age).toBeLessThan(HOUR);
+  });
+
+  it("dates every opportunity within the last day", () => {
+    for (const opportunity of portfolio.opportunities) {
+      const age = Date.now() - new Date(opportunity.createdAt).getTime();
+      expect(age, `${opportunity.id} is not recent`).toBeLessThan(24 * HOUR);
+      expect(age).toBeGreaterThanOrEqual(0);
+    }
+  });
+
+  it("never dates a fixture in the future", () => {
+    // A future timestamp renders as "in 3 hours", which reads as a bug.
+    const stamps = JSON.stringify({ portfolio, accounts }).match(
+      /\d{4}-\d{2}-\d{2}T[\d:.]+Z/g,
+    );
+    for (const stamp of stamps ?? []) {
+      expect(new Date(stamp).getTime()).toBeLessThanOrEqual(Date.now());
+    }
+  });
+});
+
 describe("DemoCdiData — contract validity", () => {
   it("produces a portfolio that satisfies the published schema", () => {
     // The fixtures are the only data a reviewer running the demo will see, so

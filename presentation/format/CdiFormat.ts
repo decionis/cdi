@@ -22,10 +22,14 @@ export class CdiFormat {
     }).format(amount);
   }
 
-  static relativeTime(
-    value: string,
-    now = new Date("2026-07-10T15:30:00.000Z"),
-  ): string {
+  /**
+   * `now` is required on purpose. It previously defaulted to the demo fixture's
+   * timestamp, and every caller omitted it — so in live mode every relative
+   * time was measured against a fixed point in the past. A required argument
+   * makes the time dependence visible at the call site; RelativeTime is the one
+   * component that supplies it.
+   */
+  static relativeTime(value: string, now: Date): string {
     const differenceMinutes = Math.round(
       (new Date(value).getTime() - now.getTime()) / 60_000,
     );

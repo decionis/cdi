@@ -1,6 +1,6 @@
 import { ShieldCheck, Sparkles } from "lucide-react";
+import { RelativeTime } from "@/components/common/RelativeTime";
 import type { PortfolioSnapshot } from "@/domain/portfolio/PortfolioSnapshot";
-import { CdiFormat } from "@/presentation/format/CdiFormat";
 import styles from "./Dashboard.module.css";
 
 export function DashboardHeader({
@@ -26,7 +26,7 @@ export function DashboardHeader({
         <div>
           <strong>Evidence adapts. Authority stays deterministic.</strong>
           <span>
-            Snapshot refreshed {CdiFormat.relativeTime(portfolio.generatedAt)}
+            Snapshot refreshed <RelativeTime value={portfolio.generatedAt} />
           </span>
         </div>
       </div>

@@ -1,6 +1,6 @@
 import { History } from "lucide-react";
+import { RelativeTime } from "@/components/common/RelativeTime";
 import type { AccountTimelineEvent } from "@/domain/accounts/CustomerAccount";
-import { CdiFormat } from "@/presentation/format/CdiFormat";
 import styles from "./Account.module.css";
 
 export function AccountTimeline({
@@ -25,7 +25,7 @@ export function AccountTimeline({
               <strong>{event.title}</strong>
               <p>{event.detail}</p>
               <small>
-                {event.kind} · {CdiFormat.relativeTime(event.occurredAt)}
+                {event.kind} · <RelativeTime value={event.occurredAt} />
               </small>
             </div>
           </li>

@@ -137,13 +137,12 @@ section should stop saying the code "is not yet open source".
 
 ## After the flip
 
-- [ ] **Watch the first Scorecard run** and treat the score as a to-do list rather than a grade.
-      Expect points lost on Signed-Releases until a tag exists, and on Contributors while there is one
-      maintainer.
-- [x] **First releases cut.** `v0.1.0` published, then superseded by `v0.1.1` after its SBOM asset
-      was found to contain zero components. Both attestations verify from a clean directory. Before
-      tagging anything further, confirm master is green first — `v0.1.0` was tagged against a broken
-      lockfile and produced a failed release.
+- [x] **First Scorecard run published — 6.1/10.** Perfect scores on Token-Permissions,
+      Dangerous-Workflow, Security-Policy, License, Vulnerabilities, Binary-Artifacts and
+      Dependency-Update-Tool. The zeros are mostly age: `Maintained` penalises a repository under 90
+      days old, and `Code-Review` counts approving reviews, of which a solo maintainer merging via
+      bypass has none. `Signed-Releases` scored 0 correctly — the check inspects release assets and
+      the provenance lived only in GitHub's attestation store; releases now carry it.
 - [ ] **Stand up the public demo** on `CDI_DATA_MODE=demo` using the [Dockerfile](./Dockerfile).
       `next.config.ts` sets `X-Robots-Tag: noindex, nofollow, noarchive`; drop that header on the demo
       host only if discoverability matters.
