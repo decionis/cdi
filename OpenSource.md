@@ -223,9 +223,13 @@ This is where an enterprise buyer's opinion is actually formed.
 2. ✅ **[`ThreatModel.md`](../ThreatModel.md)** — seven threats (T1–T7), each with its mitigation, the
    file that implements it, and the test that proves it. Assets, trust boundaries, and an
    **accepted-risk section**, because a threat model listing only mitigations is marketing.
-3. ✅ **Security headers documented** — the seven headers in `next.config.ts` were good and entirely
-   invisible; they are now tabulated with the reason for each. The **missing CSP** is recorded as the
-   most significant known gap rather than left for a reviewer to find.
+3. ✅ **Security headers documented, and the CSP gap since closed** — the seven headers in
+   `next.config.ts` were good and entirely invisible; they are now tabulated with the reason for each.
+   Writing them up surfaced the missing Content-Security-Policy as the most significant known gap,
+   which is the value of the exercise: **a nonce-based CSP now ships in `middleware.ts`**, applied on
+   every response in both data modes. Production carries no `'unsafe-inline'` or `'unsafe-eval'` in
+   `script-src`. Verified against a production build — all 21 script tags nonced, React hydrating, a
+   review `POST` succeeding, no console violations.
 4. ✅ **Data-handling statement** — no telemetry, no analytics, no third-party scripts, no customer
    data at rest, no cookies set by this application. For a fintech buyer this is a fast "no" to
    several questionnaire rows, and it is true by construction: this tier has no database.
@@ -369,7 +373,7 @@ Still open:
   engineering one. Note `next.config.ts` sets `X-Robots-Tag: noindex, nofollow, noarchive`; drop that
   header on the demo host only if discoverability matters.
 - **Seed six to ten `good first issue`s** that are genuinely small and genuinely wanted —
-  accessibility on the portfolio table, empty and error states, `CdiFormat` edge cases, a CSP. An
+  accessibility on the portfolio table, empty and error states, `CdiFormat` edge cases. An
   empty issue tracker converts nobody.
 - **Prove the release pipeline before trusting a tag.** `release.yml` has never executed. Run it via
   `workflow_dispatch` with `dry_run: true` first; it uploads the tarball and SBOM as artifacts

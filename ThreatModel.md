@@ -155,13 +155,47 @@ Set globally in [`next.config.ts`](next.config.ts):
 
 `poweredByHeader` is disabled.
 
+### Content-Security-Policy
+
+Set per-request by [`middleware.ts`](middleware.ts) rather than statically, because it carries a
+fresh nonce on every response. It applies in **both** data modes — a demo deployment is public-facing
+— and to refusals as well as successes, so no response leaves this application without a policy.
+
+```text
+default-src 'self';
+script-src 'self' 'nonce-<per-request>' 'strict-dynamic';
+style-src 'self' 'unsafe-inline';
+img-src 'self' data: blob;
+font-src 'self';
+connect-src 'self';
+object-src 'none';
+base-uri 'self';
+form-action 'self';
+frame-ancestors 'none';
+upgrade-insecure-requests
+```
+
+`'strict-dynamic'` lets Next's nonced bootstrap load its own hashed chunks without an allowlist of
+filenames, and makes supporting browsers ignore the `'self'` fallback — there is no host allowlist to
+get wrong. Production contains **no** `'unsafe-inline'` or `'unsafe-eval'` in `script-src`;
+`'unsafe-eval'` and `ws:` are added only when `NODE_ENV=development`, where the dev server compiles
+in the browser.
+
+`style-src` retains `'unsafe-inline'`. Styling is CSS Modules emitted as external files, but Next
+injects a small amount of inline CSS it does not nonce. This is a materially weaker concession than
+the script equivalent: with `script-src` locked down, injected CSS cannot execute.
+
+**Verified against a production build, not just asserted:** all 21 script tags carry the nonce, React
+hydrates, stylesheets load, a review `POST` to the BFF succeeds under `connect-src 'self'`, and the
+browser console reports no violations.
+
 ## Accepted risk and known gaps
 
 Stated plainly, because a threat model that lists only mitigations is marketing.
 
-- **No Content-Security-Policy.** The most significant gap. `X-Frame-Options` and the COOP/CORP pair
-  cover framing and isolation, but there is no script-source restriction. Adding a CSP is tracked in
-  [OpenSource.md](./OpenSource.md).
+- ~~No Content-Security-Policy.~~ **Closed.** A nonce-based CSP is now set by
+  [`middleware.ts`](middleware.ts) on every response in both data modes — see "Transport and browser
+  hardening" above.
 - **Role claims are client-readable and client-writable.** See T2. Correct only because the platform
   re-authorizes; integrators must not weaken that assumption.
 - **No rate limiting or brute-force protection** in this tier. Expected at the edge or upstream.
