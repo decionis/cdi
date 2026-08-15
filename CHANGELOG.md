@@ -64,8 +64,8 @@ became something that can be handed to someone outside the team.
 
 - Resolved 15 known advisories in the production dependency tree (8 high, 7 moderate), all reachable
   through `next` and its transitive dependencies.
-- Resolved 10 advisories in the development tree (1 critical, 6 high, 3 moderate) — `vitest` to 3.x,
-  plus overrides pinning `vite`, `esbuild`, `js-yaml`, and `brace-expansion`.
+- Resolved 10 advisories in the development tree (1 critical, 6 high, 3 moderate) — `vitest` to 3.x
+  and subsequently 4.x, plus overrides pinning `vite`, `esbuild`, `js-yaml`, and `brace-expansion`.
 - The CI audit gate now covers the build toolchain as well as the production tree, at high and
   critical severity. Auditing production only had been hiding a critical in the test runner.
 - `gitleaks` across all refs reports no secrets in git history. Only `.env.example` was ever
