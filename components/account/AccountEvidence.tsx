@@ -2,7 +2,7 @@ import { Database, Link2 } from "lucide-react";
 import { RelativeTime } from "@/components/common/RelativeTime";
 import type { EvidenceSignal } from "@/domain/evidence/EvidenceSignal";
 import { StatusBadge } from "@/components/common/StatusBadge";
-import { CdiFormat } from "@/presentation/format/CdiFormat";
+import { StewardFormat } from "@/presentation/format/StewardFormat";
 import styles from "./Account.module.css";
 
 function impactTone(impact: EvidenceSignal["impact"]) {
@@ -17,7 +17,7 @@ export function AccountEvidence({ evidence }: { evidence: EvidenceSignal[] }) {
       <div className={styles.panelHeading}>
         <div>
           <span>Correlated evidence</span>
-          <h2>What CDI considered</h2>
+          <h2>What Steward considered</h2>
         </div>
         <Database size={18} aria-hidden="true" />
       </div>
@@ -37,7 +37,7 @@ export function AccountEvidence({ evidence }: { evidence: EvidenceSignal[] }) {
             <div className={styles.provenance}>
               <Link2 size={13} aria-hidden="true" />
               {signal.source} · {signal.sourceRecordId} ·{" "}
-              {CdiFormat.confidence(signal.confidence)} confidence
+              {StewardFormat.confidence(signal.confidence)} confidence
             </div>
           </article>
         ))}

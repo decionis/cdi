@@ -1,52 +1,60 @@
 # Open Source Implementation Plan
 
-Taking `decionis/cdi` public under **Apache-2.0**, optimized for the audience that actually decides
-whether this repository helps or hurts: the security, legal, and procurement reviewers at a regulated
-fintech evaluating Decionis as a vendor.
+Taking `decionis/steward` public under **Apache-2.0**.
 
 ## What this plan optimizes for
 
-An enterprise buyer does not browse the repository the way an open-source contributor does. A
-contributor asks "can I run this and is the maintainer responsive?" A buyer's reviewer asks a
-different set of questions, and asks them with tooling:
+**Correction, recorded rather than quietly edited out.** This plan originally declared its audience to
+be "the security, legal, and procurement reviewers at a regulated fintech evaluating Decionis as a
+vendor", and every decision below was optimised for that reader. That was wrong, and it was wrong in a
+way worth leaving visible, because a reader of this document should know which decisions were made
+for the wrong reason.
 
-- What license, and does it carry a patent grant? (Apache-2.0 — settled.)
-- What is in the dependency tree, under what licenses, with what known CVEs?
-- Is there a disclosure policy and a stated response time?
-- Is the build reproducible and the release chain attestable?
-- Do the security claims in the marketing hold up when I read the code?
+Steward is open source for an **ecosystem** reason, not a procurement one. Decionis builds the
+decisioning control plane; Steward is the operator tier that rides on it, opened so that others build
+the verticals rather than Decionis building every one itself. The sibling repository
+`agent-safe-pipeline` is the same play, and its adoption is the evidence that the motion works.
 
-That last one is the opportunity. CDI's pitch is that operator reviews are governed, attributable,
-and non-authoritative — and unlike almost every vendor making that claim, we can let the buyer read
-the enforcement. A reviewer who opens `middleware.ts`, `CdiSessionResolver`, and `OpportunityService`
-and finds the boundary exactly where the sales deck said it was is a reviewer who stops asking.
+So the reader to optimise for is **an engineer with the problem**, not a reviewer clearing a vendor:
 
-The corollary is that everything in this repository is now evidence in a vendor security review.
-That raises the cost of the findings below considerably.
+- Can I clone this, run it, and understand it in an afternoon? (Yes — demo mode needs no credentials.)
+- Does it solve a problem I actually have?
+- Is the boundary between this and the platform clear enough that I can extend it safely?
+- Is it maintained, licensed, and safe to depend on?
+
+The problem it comes from is concrete. In enterprise account management — the original observation
+was at an energy utility, not a bank — teams cannot answer which customers justify which resources.
+Support capacity is finite, and something built for one account has to scale to others. Teams want to
+know what to raise with a customer _before_ the customer complains, and to act on churn and
+disconnection signals while there is still time to act. That is signal capture and decisioning, and it
+rides on the Decionis Protocol.
+
+The supply-chain and security work below still matters — it is what makes a serious team willing to
+depend on this. But it is **credibility, not the pitch**. The pitch is the problem.
 
 ## Verified findings
 
 Measured against the current tree this session, not estimated.
 
-| Finding                                                                                   | Severity for a buyer   | Status                 |
-| ----------------------------------------------------------------------------------------- | ---------------------- | ---------------------- |
-| 15 known vulnerabilities in the production tree — 8 high, 7 moderate                      | Blocker                | ✅ Fixed               |
-| `package.json` has no `license`, `repository`, `description`, or `author` field           | Blocker                | ✅ Fixed               |
-| No `LICENSE` file, so the code is all-rights-reserved                                     | Blocker                | ✅ Fixed               |
-| LGPL-3.0-or-later present in the production tree (`@img/sharp-libvips-*`)                 | High — needs an answer | ✅ Documented          |
-| No CI or audit enforcement                                                                | High                   | ✅ Fixed               |
-| No signed or attested releases, no SBOM                                                   | High                   | ✅ Fixed               |
-| Branch protection — PR + code-owner review enforced                                       | High                   | ✅ Fixed               |
-| Required status checks absent, so a PR could merge with CI red                            | High                   | ✅ Fixed               |
-| Dependabot security updates disabled; `dependencies` label missing                        | High                   | ✅ Fixed               |
-| Push protection disabled                                                                  | High                   | ✅ Fixed               |
-| Private vulnerability reporting unavailable — public repositories only                    | Medium                 | Blocked on public flip |
-| CODEOWNERS named GitHub teams that do not exist, so no PR could be merged                 | Blocker                | ✅ Fixed               |
-| Sole code owner could not approve their own PR — repository deadlocked                    | Blocker                | ✅ Fixed               |
-| 10 advisories in the dev tree the production-only audit did not cover                     | High                   | ✅ Fixed               |
-| Auth and gateway paths (`middleware.ts`, `CdiSessionResolver`, `JsonHttpClient`) untested | High                   | ✅ Fixed               |
-| No `SECURITY.md`, no disclosure policy, no response-time commitment                       | High                   | ✅ Fixed               |
-| SDK dependency `@decionis-ai/sdk` declared but imported nowhere                           | Medium                 | ✅ Fixed               |
+| Finding                                                                                       | Severity for a buyer   | Status                 |
+| --------------------------------------------------------------------------------------------- | ---------------------- | ---------------------- |
+| 15 known vulnerabilities in the production tree — 8 high, 7 moderate                          | Blocker                | ✅ Fixed               |
+| `package.json` has no `license`, `repository`, `description`, or `author` field               | Blocker                | ✅ Fixed               |
+| No `LICENSE` file, so the code is all-rights-reserved                                         | Blocker                | ✅ Fixed               |
+| LGPL-3.0-or-later present in the production tree (`@img/sharp-libvips-*`)                     | High — needs an answer | ✅ Documented          |
+| No CI or audit enforcement                                                                    | High                   | ✅ Fixed               |
+| No signed or attested releases, no SBOM                                                       | High                   | ✅ Fixed               |
+| Branch protection — PR + code-owner review enforced                                           | High                   | ✅ Fixed               |
+| Required status checks absent, so a PR could merge with CI red                                | High                   | ✅ Fixed               |
+| Dependabot security updates disabled; `dependencies` label missing                            | High                   | ✅ Fixed               |
+| Push protection disabled                                                                      | High                   | ✅ Fixed               |
+| Private vulnerability reporting unavailable — public repositories only                        | Medium                 | Blocked on public flip |
+| CODEOWNERS named GitHub teams that do not exist, so no PR could be merged                     | Blocker                | ✅ Fixed               |
+| Sole code owner could not approve their own PR — repository deadlocked                        | Blocker                | ✅ Fixed               |
+| 10 advisories in the dev tree the production-only audit did not cover                         | High                   | ✅ Fixed               |
+| Auth and gateway paths (`middleware.ts`, `StewardSessionResolver`, `JsonHttpClient`) untested | High                   | ✅ Fixed               |
+| No `SECURITY.md`, no disclosure policy, no response-time commitment                           | High                   | ✅ Fixed               |
+| SDK dependency `@decionis-ai/sdk` declared but imported nowhere                               | Medium                 | ✅ Fixed               |
 
 Two open questions from the previous plan are now answered:
 
@@ -56,13 +64,13 @@ Two open questions from the previous plan are now answered:
 - **The provenance question is resolved by a differently-scoped package.** `@decionis-ai/sdk`, the one
   removed in W5, still declares `github.com/orepos/Decionis` — an unrelated-looking org a reviewer
   would have queried. The published SDK is now **`@decionis/sdk`**, which declares
-  `github.com/decionis/Decionis`, so the trail from `decionis/cdi` to the SDK to its source stays
+  `github.com/decionis/Decionis`, so the trail from `decionis/steward` to the SDK to its source stays
   inside one org.
 
   Two things to know before anyone adds it as a dependency. It is published **`UNLICENSED`**, npm's
   all-rights-reserved marker, so `pnpm licenses:check` will fail the build — correctly. And an
   Apache-2.0 repository depending on an all-rights-reserved package is a question a buyer will ask,
-  so if CDI is ever meant to consume the SDK, the SDK needs a license first.
+  so if Steward is ever meant to consume the SDK, the SDK needs a license first.
 
 ### The vulnerability finding — resolved
 
@@ -207,7 +215,7 @@ This is where an enterprise buyer's opinion is actually formed.
    and platform-conditional, so only a build-time SBOM matches what ships.
 7. ✅ **Build provenance** — the same workflow produces a signed SLSA attestation over the deployable
    tarball via `actions/attest-build-provenance`. A recipient verifies it with
-   `gh attestation verify <tarball> --repo decionis/cdi`, which confirms the artifact came from this
+   `gh attestation verify <tarball> --repo decionis/steward`, which confirms the artifact came from this
    workflow and this commit rather than from someone's laptop. The release notes carry that command.
    Nothing is published to npm (`private: true`), so `--provenance` does not apply.
 8. ✅ **Repository security settings — done, bar one that is not possible yet:**
@@ -221,7 +229,7 @@ This is where an enterprise buyer's opinion is actually formed.
    | **Private vulnerability reporting** | ⚠️ **not available on an internal repository**          |
 
    Private vulnerability reporting cannot be enabled here. Both `GET` and `PUT` on
-   `/repos/decionis/cdi/private-vulnerability-reporting` return 404 with an admin token, because
+   `/repos/decionis/steward/private-vulnerability-reporting` return 404 with an admin token, because
    GitHub scopes the feature to **public** repositories. This plan listed it as an open action item
    for several revisions before anyone checked whether it was possible — it belongs in the public-flip
    checklist, not the current one. Until then `security@decionis.com` is the only working disclosure
@@ -297,15 +305,15 @@ Sign-off status:
 The security story is only as strong as the code a reviewer opens to check it. All four
 security-critical paths are now covered. **69 tests across 10 files, up from 11 across 5.**
 
-| File                    | Tests | Covers                                                                                                                                                  |
-| ----------------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `middleware.ts`         | 13    | Demo pass-through, live gating, 401-vs-redirect, `/api/health` exemption, partial and empty cookies, configured cookie names, the matcher as a boundary |
-| `CdiSessionResolver.ts` | 20    | Role parsing, the `VIEWER` privilege floor, bearer-over-cookie and header-over-cookie precedence, service-token fallback, demo-session isolation        |
-| `JsonHttpClient.ts`     | 13    | Credential placement, `no-store`, schema enforcement at the boundary, gateway error mapping, timeout and abort                                          |
-| `CdiApiErrorMapper.ts`  | 8     | Status mapping for every error type, out-of-range clamping to 502, and that an unrecognized error leaks no internals                                    |
-| Server/client boundary  | 4     | That no client component references `CdiSession` or a token field, and that every session-holding component stays server-side                           |
+| File                        | Tests | Covers                                                                                                                                                  |
+| --------------------------- | ----- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `middleware.ts`             | 13    | Demo pass-through, live gating, 401-vs-redirect, `/api/health` exemption, partial and empty cookies, configured cookie names, the matcher as a boundary |
+| `StewardSessionResolver.ts` | 20    | Role parsing, the `VIEWER` privilege floor, bearer-over-cookie and header-over-cookie precedence, service-token fallback, demo-session isolation        |
+| `JsonHttpClient.ts`         | 13    | Credential placement, `no-store`, schema enforcement at the boundary, gateway error mapping, timeout and abort                                          |
+| `StewardApiErrorMapper.ts`  | 8     | Status mapping for every error type, out-of-range clamping to 502, and that an unrecognized error leaks no internals                                    |
+| Server/client boundary      | 4     | That no client component references `StewardSession` or a token field, and that every session-holding component stays server-side                       |
 
-The boundary guard came out of writing the threat model. `AppShell` takes the whole `CdiSession`,
+The boundary guard came out of writing the threat model. `AppShell` takes the whole `StewardSession`,
 which carries `accessToken`; under React Server Components, any prop crossing into a client component
 is serialized into the browser payload. Adding `"use client"` to `AppShell` would ship the access
 token in every page render **without failing typecheck or any behavioural test**. The invariant is
@@ -329,7 +337,7 @@ asks about and they are now executable rather than asserted:
 replacing the `VIEWER` fallback with `ADMIN` fails 2. A suite that cannot fail is decoration, and on
 an authorization path that is worse than no suite at all.
 
-Still open from this workstream: the 8s gateway timeout remains hardcoded in `CdiRuntimeConfig`.
+Still open from this workstream: the 8s gateway timeout remains hardcoded in `StewardRuntimeConfig`.
 Make it configurable or document it as deliberate.
 
 ### W5 — Contributor surface ✅ Done (pending two sign-offs)
@@ -340,9 +348,9 @@ GitHub's uppercase convention so the platform surfaces them automatically, the s
 exemption `page.tsx` and the workflows get.
 
 - ✅ **[`CONTRIBUTING.md`](./CONTRIBUTING.md)** — setup, the demo-mode loop, `pnpm verify` as the
-  gate, conventions, DCO sign-off, and the dependency-policy rules. It **opens** with "What CDI is
+  gate, conventions, DCO sign-off, and the dependency-policy rules. It **opens** with "What Steward is
   not", listing the five changes that will be declined regardless of implementation quality. Anyone
-  proposing that CDI evaluate policy locally learns it from a document rather than from a closed PR,
+  proposing that Steward evaluate policy locally learns it from a document rather than from a closed PR,
   and is directed to open an issue first because it is a design conversation.
 - ✅ **[`CODE_OF_CONDUCT.md`](./CODE_OF_CONDUCT.md)** — Contributor Covenant 2.1, verbatim.
 - ✅ **[`.github/CODEOWNERS`](./.github/CODEOWNERS)** — mandatory review on `middleware.ts`,
@@ -365,7 +373,7 @@ Sign-off status:
 - ✅ **`conduct@decionis.com` confirmed monitored.**
 - ✅ **The `dependencies` label now exists**, so the scheduled audit job can file its tracking issue.
 - ✅ **CODEOWNERS now names a real code owner.** It originally referenced
-  `@decionis/cdi-maintainers` and `@decionis/cdi-security`, neither of which existed — both returned
+  `@decionis/steward-maintainers` and `@decionis/steward-security`, neither of which existed — both returned
   404 — so the ruleset's code-owner requirement could never be satisfied and **no pull request could
   merge at all**, including the ones closing the remaining gaps. It now names `@ocularminds`, who has
   admin access and is therefore a valid owner.
@@ -375,7 +383,7 @@ Sign-off status:
 
   ```bash
   gh api orgs/decionis/teams -f name='cdi-maintainers' -f privacy=closed
-  gh api -X PUT orgs/decionis/teams/cdi-maintainers/repos/decionis/cdi -f permission=push
+  gh api -X PUT orgs/decionis/teams/cdi-maintainers/repos/decionis/steward -f permission=push
   gh api -X PUT orgs/decionis/teams/cdi-maintainers/memberships/<user> -f role=maintainer
   ```
 
@@ -398,7 +406,7 @@ Sign-off status:
 - ✅ **Deployment recipe** — [`Dockerfile`](./Dockerfile) and `.dockerignore`, which is what makes a
   public demo deployment cheap. Multi-stage, `--frozen-lockfile` so the image cannot resolve a
   different tree than CI audited, non-root, telemetry off, `HEALTHCHECK` on `/api/health`.
-  **Verified end to end**: image builds, container reports `healthy`, `/api/cdi/portfolio` serves
+  **Verified end to end**: image builds, container reports `healthy`, `/api/steward/portfolio` serves
   `DEMO` with 4 accounts, `id` confirms uid 1000, security headers present and no `x-powered-by`.
 - ✅ **README deployment section**, including the non-obvious part: `.next/standalone` is not
   self-sufficient — `next build` emits static assets separately and `.next/static` must be copied
@@ -409,7 +417,7 @@ EVIDENCE` badge is present, and every review control is captioned "Records a rev
   downstream limit is changed" — the trust boundary stated in the interface, not just in the docs.
   The BFF was exercised directly: `/api/health` open, portfolio `DEMO` with 4 accounts, a review
   returning a deterministic `HELD` plus dossier reference, and an invalid decision producing
-  `400 INVALID_REQUEST` with Zod issues — `CdiApiErrorMapper` behaving in the running app exactly as
+  `400 INVALID_REQUEST` with Zod issues — `StewardApiErrorMapper` behaving in the running app exactly as
   its unit tests assert.
 
 Still open:
@@ -424,7 +432,7 @@ Still open:
   engineering one. Note `next.config.ts` sets `X-Robots-Tag: noindex, nofollow, noarchive`; drop that
   header on the demo host only if discoverability matters.
 - **Seed six to ten `good first issue`s** that are genuinely small and genuinely wanted —
-  accessibility on the portfolio table, empty and error states, `CdiFormat` edge cases. An
+  accessibility on the portfolio table, empty and error states, `StewardFormat` edge cases. An
   empty issue tracker converts nobody.
 - **Prove the release pipeline before trusting a tag.** `release.yml` has never executed. Run it via
   `workflow_dispatch` with `dry_run: true` first; it uploads the tarball and SBOM as artifacts

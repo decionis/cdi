@@ -1,11 +1,11 @@
-import { CdiFormat } from "@/presentation/format/CdiFormat";
+import { StewardFormat } from "@/presentation/format/StewardFormat";
 
 /**
  * Renders a timestamp as "5 minutes ago" inside a semantic `<time>` element.
  *
  * Two things this centralises.
  *
- * The clock. `CdiFormat.relativeTime` takes `now` as a required argument — it
+ * The clock. `StewardFormat.relativeTime` takes `now` as a required argument — it
  * used to default to a hardcoded fixture date, which meant every timestamp in
  * live mode was measured against a fixed point in the past. One component owns
  * calling `new Date()` now, so a single render measures everything against the
@@ -44,7 +44,7 @@ export function RelativeTime({
       title={`${ABSOLUTE.format(instant)} UTC`}
       className={className}
     >
-      {CdiFormat.relativeTime(value, new Date())}
+      {StewardFormat.relativeTime(value, new Date())}
     </time>
   );
 }

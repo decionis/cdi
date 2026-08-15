@@ -7,7 +7,7 @@
  * not, and the README quietly starts lying. Regenerating them is one command.
  *
  * Usage:
- *   pnpm build && CDI_DATA_MODE=demo pnpm start   # in one terminal
+ *   pnpm build && STEWARD_DATA_MODE=demo pnpm start   # in one terminal
  *   pnpm screenshots                              # in another
  *
  * Demo mode is required, not incidental: these images are published, and live
@@ -17,7 +17,7 @@
 import { mkdir } from "node:fs/promises";
 import { chromium } from "playwright";
 
-const BASE_URL = process.env.CDI_SCREENSHOT_URL ?? "http://localhost:3000";
+const BASE_URL = process.env.STEWARD_SCREENSHOT_URL ?? "http://localhost:3000";
 const OUTPUT_DIR = "docs";
 
 /** 2x for a display-quality image; 1280 keeps the sidebar layout. */
@@ -59,10 +59,10 @@ async function launchBrowser() {
 }
 
 async function assertDemoMode(page) {
-  const response = await page.request.get(`${BASE_URL}/api/cdi/portfolio`);
+  const response = await page.request.get(`${BASE_URL}/api/steward/portfolio`);
   if (!response.ok()) {
     throw new Error(
-      `${BASE_URL}/api/cdi/portfolio returned ${response.status()}. ` +
+      `${BASE_URL}/api/steward/portfolio returned ${response.status()}. ` +
         "Is the server running?",
     );
   }
@@ -70,7 +70,7 @@ async function assertDemoMode(page) {
   if (body.dataStatus !== "DEMO") {
     throw new Error(
       `Refusing to capture: server reports dataStatus=${body.dataStatus}. ` +
-        "Screenshots are published — run with CDI_DATA_MODE=demo.",
+        "Screenshots are published — run with STEWARD_DATA_MODE=demo.",
     );
   }
 }

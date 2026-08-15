@@ -77,7 +77,7 @@ jobs:
           set -euo pipefail
           version="${GITHUB_REF_NAME#v}"
           [ "$GITHUB_REF_TYPE" = "tag" ] || version="0.0.0-${GITHUB_SHA:0:7}"
-          name="decionis-cdi-${version}"
+          name="decionis-steward-${version}"
 
           # next.config.ts sets output: "standalone". That directory is not
           # self-sufficient — the static assets are emitted separately and must
@@ -105,7 +105,7 @@ jobs:
         # pnpm already knows the production set, so the SBOM and the published
         # ThirdPartyLicenses.md are generated from the same source and cannot
         # disagree. It also removes a third-party action from the release path.
-        run: node scripts/GenerateSbom.mjs "decionis-cdi-${{ steps.bundle.outputs.version }}.cdx.json" "${{ steps.bundle.outputs.version }}"
+        run: node scripts/GenerateSbom.mjs "decionis-steward-${{ steps.bundle.outputs.version }}.cdx.json" "${{ steps.bundle.outputs.version }}"
 
       - name: Assert the SBOM describes something
         # The generator refuses to write an empty document, but this asserts the
@@ -113,7 +113,7 @@ jobs:
         # zero components: it passed every schema check and answered nothing,
         # and nothing caught it until someone opened the file.
         env:
-          SBOM: "decionis-cdi-${{ steps.bundle.outputs.version }}.cdx.json"
+          SBOM: "decionis-steward-${{ steps.bundle.outputs.version }}.cdx.json"
         run: |
           set -euo pipefail
           count=$(node -e "process.stdout.write(String((JSON.parse(require('fs').readFileSync(process.env.SBOM,'utf8')).components||[]).length))")
@@ -134,8 +134,8 @@ jobs:
         # finds it there. Attaching the Sigstore bundle to the release as well
         # means it can be verified from the downloaded files alone:
         #
-        #   gh attestation verify decionis-cdi-<version>.tar.gz \
-        #     --bundle decionis-cdi-<version>.sigstore.json --repo decionis/cdi
+        #   gh attestation verify decionis-steward-<version>.tar.gz \
+        #     --bundle decionis-steward-<version>.sigstore.json --repo decionis/steward
         #
         # That matters for an air-gapped or mirrored consumer, and for anyone
         # archiving a release: the tarball, its SBOM and its provenance travel
@@ -153,7 +153,7 @@ jobs:
           VERSION: ${{ steps.bundle.outputs.version }}
         run: |
           set -euo pipefail
-          cp "$BUNDLE" "decionis-cdi-${VERSION}.sigstore.json"
+          cp "$BUNDLE" "decionis-steward-${VERSION}.sigstore.json"
 
           # Also emit the signed DSSE envelope as in-toto JSON Lines, the
           # format SLSA tooling and Scorecard's provenance probe expect. This is
@@ -173,7 +173,7 @@ jobs:
               throw new Error("payload is not an in-toto Statement v1: " + payload._type);
             }
             fs.writeFileSync(
-              `decionis-cdi-${process.env.VERSION}.intoto.jsonl`,
+              `decionis-steward-${process.env.VERSION}.intoto.jsonl`,
               JSON.stringify(envelope) + "\n",
             );
             console.log("in-toto statement subject:", payload.subject[0].name);
@@ -185,9 +185,9 @@ jobs:
           name: release-${{ steps.bundle.outputs.version }}
           path: |
             ${{ steps.bundle.outputs.tarball }}
-            decionis-cdi-${{ steps.bundle.outputs.version }}.cdx.json
-            decionis-cdi-${{ steps.bundle.outputs.version }}.sigstore.json
-            decionis-cdi-${{ steps.bundle.outputs.version }}.intoto.jsonl
+            decionis-steward-${{ steps.bundle.outputs.version }}.cdx.json
+            decionis-steward-${{ steps.bundle.outputs.version }}.sigstore.json
+            decionis-steward-${{ steps.bundle.outputs.version }}.intoto.jsonl
           retention-days: 30
 
       - name: Publish release
@@ -205,9 +205,9 @@ jobs:
           | File | What it is |
           | ---- | ---------- |
           | `__TARBALL__` | Deployable Next.js standalone bundle |
-          | `decionis-cdi-__VERSION__.cdx.json` | CycloneDX SBOM of the resolved production tree |
-          | `decionis-cdi-__VERSION__.sigstore.json` | Sigstore bundle for the provenance attestation |
-          | `decionis-cdi-__VERSION__.intoto.jsonl` | The same attestation as a signed in-toto statement |
+          | `decionis-steward-__VERSION__.cdx.json` | CycloneDX SBOM of the resolved production tree |
+          | `decionis-steward-__VERSION__.sigstore.json` | Sigstore bundle for the provenance attestation |
+          | `decionis-steward-__VERSION__.intoto.jsonl` | The same attestation as a signed in-toto statement |
 
           SHA-256 of the tarball:
 
@@ -221,7 +221,7 @@ jobs:
           this repository before deploying:
 
           ```bash
-          gh attestation verify __TARBALL__ --repo decionis/cdi
+          gh attestation verify __TARBALL__ --repo decionis/steward
           ```
 
           That confirms the artifact was produced by this workflow from this commit,
@@ -232,7 +232,7 @@ jobs:
 
           ```bash
           gh attestation verify __TARBALL__ \
-            --bundle decionis-cdi-__VERSION__.sigstore.json --repo decionis/cdi
+            --bundle decionis-steward-__VERSION__.sigstore.json --repo decionis/steward
           ```
 
           ## Licensing
@@ -252,9 +252,9 @@ jobs:
 
           gh release create "${GITHUB_REF_NAME}" \
             --repo "${GITHUB_REPOSITORY}" \
-            --title "Decionis CDI ${VERSION}" \
+            --title "Decionis Steward ${VERSION}" \
             --notes-file notes.md \
             "${TARBALL}" \
-            "decionis-cdi-${VERSION}.cdx.json" \
-            "decionis-cdi-${VERSION}.sigstore.json" \
-            "decionis-cdi-${VERSION}.intoto.jsonl"
+            "decionis-steward-${VERSION}.cdx.json" \
+            "decionis-steward-${VERSION}.sigstore.json" \
+            "decionis-steward-${VERSION}.intoto.jsonl"

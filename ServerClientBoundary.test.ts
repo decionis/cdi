@@ -10,7 +10,7 @@ import { describe, expect, it } from "vitest";
  * Guards the server/client boundary against credential leakage.
  *
  * Props passed from a Server Component into a Client Component are serialized
- * into the RSC payload delivered to the browser. `CdiSession` carries
+ * into the RSC payload delivered to the browser. `StewardSession` carries
  * `accessToken`, so the moment a component holding a session is marked
  * "use client" — or a session is passed to one that is — the Decionis access
  * token ships to the browser in the page payload.
@@ -61,9 +61,9 @@ describe("server/client boundary", () => {
     expect(clientSources.length).toBeGreaterThan(0);
   });
 
-  it("keeps CdiSession out of every client component", () => {
+  it("keeps StewardSession out of every client component", () => {
     const offenders = clientSources
-      .filter((file) => file.contents.includes("CdiSession"))
+      .filter((file) => file.contents.includes("StewardSession"))
       .map((file) => file.path);
 
     expect(offenders).toEqual([]);
@@ -80,10 +80,10 @@ describe("server/client boundary", () => {
   });
 
   it("keeps the components that receive a session on the server", () => {
-    // AppShell takes the whole CdiSession. If it ever becomes a client
+    // AppShell takes the whole StewardSession. If it ever becomes a client
     // component, the token is serialized into the page payload.
     const sessionHolders = allSources
-      .filter((file) => /\bsession:\s*CdiSession\b/.test(file.contents))
+      .filter((file) => /\bsession:\s*StewardSession\b/.test(file.contents))
       .map((file) => file.path);
 
     expect(sessionHolders.length).toBeGreaterThan(0);

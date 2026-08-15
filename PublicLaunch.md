@@ -1,6 +1,6 @@
 # Public Launch Runbook
 
-Making `decionis/cdi` public is one coordinated change, not a setting. Several things are impossible
+Making `decionis/steward` public is one coordinated change, not a setting. Several things are impossible
 while the repository is internal and become available the moment it is public; several others must be
 true **before** the flip, because the flip exposes every commit ever made and cannot be meaningfully
 undone.
@@ -30,7 +30,7 @@ Do not treat their absence today as an oversight. They are stage two.
 - ✅ **No secrets in git history.** `gitleaks git --log-opts="--all"` reports no leaks across all
   commits and refs. Re-run immediately before flipping; the guarantee is only as fresh as the scan.
 - ✅ **No environment file was ever committed.** Only `.env.example`, whose
-  `DECIONIS_CDI_SERVICE_TOKEN` is empty. No file that is gitignored today was ever tracked.
+  `DECIONIS_STEWARD_SERVICE_TOKEN` is empty. No file that is gitignored today was ever tracked.
 - ✅ **Licensing.** Apache-2.0, `NOTICE`, complete `package.json` metadata, and a third-party
   inventory with the LGPL and CC-BY entries answered in advance.
 - ✅ **Supply chain.** `pnpm audit --prod` and `pnpm audit --audit-level high` both clean; license
@@ -42,20 +42,20 @@ Do not treat their absence today as an oversight. They are stage two.
 ### Still required — human sign-off, not engineering
 
 - [x] **Demo fixtures regenerated, so provenance is true by construction.** Rather than ask someone
-      to attest that invented data is invented, `infra/demo/DemoCdiData.ts` was rewritten from
+      to attest that invented data is invented, `infra/demo/DemoStewardData.ts` was rewritten from
       scratch under three conventions that make a collision with real data impossible: organisations
       are named from the NATO phonetic alphabet, people carry the RFC 2606 `Example` surname, and
       external references are sequential rather than CRM-shaped. The demo operator and workspace
-      labels were regenerated the same way. `DemoCdiData.test.ts` enforces all three, plus the
+      labels were regenerated the same way. `DemoStewardData.test.ts` enforces all three, plus the
       absence of any email address, URL, or phone number — mutation-tested against a realistic
       company name, a realistic person name, and an embedded email, each of which fails the suite.
 - [x] **Trademark and naming confirmed.** The entity is **Decionis, Inc.**; the product is
-      **CDI — Adaptive Customer Decision Intelligence**, short form "Decionis CDI"; the `@decionis`
+      **Steward — Adaptive Customer Decision Intelligence**, short form "Decionis Steward"; the `@decionis`
       npm scope is held and published under. The documentation already uses these forms
       consistently, so no rename is required.
 - [x] **Disclosure response targets confirmed** — 2 business days to acknowledge, 5 to assess, 30
       days for high/critical, 90 for low/medium. These are commitments the team will honour.
-- [x] **Platform security contact named** — `security@decionis.com` handles both CDI and platform
+- [x] **Platform security contact named** — `security@decionis.com` handles both Steward and platform
       reports. `SECURITY.md` now says so instead of routing to an unnamed contact.
 - [x] **`code_scanning` and `code_coverage` now have signals to consume.** Both rules used to wait on
       data this repository never produced. Code Security is enabled and CodeQL is publishing
@@ -76,7 +76,7 @@ revisiting.
 
 ```bash
 gitleaks git --log-opts="--all"          # must report: no leaks found
-gh repo edit decionis/cdi --visibility public --accept-visibility-change-consequences
+gh repo edit decionis/steward --visibility public --accept-visibility-change-consequences
 ```
 
 ### 2. Enable private vulnerability reporting
@@ -84,8 +84,8 @@ gh repo edit decionis/cdi --visibility public --accept-visibility-change-consequ
 Now possible, and `SECURITY.md` depends on it:
 
 ```bash
-gh api -X PUT repos/decionis/cdi/private-vulnerability-reporting
-gh api repos/decionis/cdi/private-vulnerability-reporting --jq '.enabled'   # expect: true
+gh api -X PUT repos/decionis/steward/private-vulnerability-reporting
+gh api repos/decionis/steward/private-vulnerability-reporting --jq '.enabled'   # expect: true
 ```
 
 ### 3. Point disclosure at GHSA
@@ -97,7 +97,7 @@ In [`.github/ISSUE_TEMPLATE/config.yml`](.github/ISSUE_TEMPLATE/config.yml), res
 and remove the comment above it:
 
 ```yaml
-url: https://github.com/decionis/cdi/security/advisories/new
+url: https://github.com/decionis/steward/security/advisories/new
 ```
 
 ### 4. Turn Scorecard back on
@@ -109,7 +109,7 @@ In [`.github/workflows/scorecard.yml`](.github/workflows/scorecard.yml): uncomme
 Then add the badge to the top of `README.md`:
 
 ```markdown
-[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/decionis/cdi/badge)](https://scorecard.dev/viewer/?uri=github.com/decionis/cdi)
+[![OpenSSF Scorecard](https://api.securityscorecards.dev/projects/github.com/decionis/steward/badge)](https://scorecard.dev/viewer/?uri=github.com/decionis/steward)
 ```
 
 The badge is the point of the exercise — it lets procurement cite a third-party number instead of
@@ -123,7 +123,7 @@ the analyze step and delete the "Report analysis outcome" step that exists only 
 missing entitlement. Then add `analyze` to the required status checks:
 
 ```bash
-gh api repos/decionis/cdi/rulesets/20883088 | jq 'def stripnulls: walk(if type == "object" then with_entries(select(.value != null)) else . end); . as $r | {name,target,enforcement,conditions,bypass_actors, rules: (($r.rules | map(select(.type != "required_status_checks"))) + [{type:"required_status_checks",parameters:{strict_required_status_checks_policy:false,do_not_enforce_on_create:false,required_status_checks:[{context:"verify (node 20)"},{context:"verify (node 22)"},{context:"audit"},{context:"analyze"}]}}])} | stripnulls' | gh api -X PUT repos/decionis/cdi/rulesets/20883088 --input -
+gh api repos/decionis/steward/rulesets/20883088 | jq 'def stripnulls: walk(if type == "object" then with_entries(select(.value != null)) else . end); . as $r | {name,target,enforcement,conditions,bypass_actors, rules: (($r.rules | map(select(.type != "required_status_checks"))) + [{type:"required_status_checks",parameters:{strict_required_status_checks_policy:false,do_not_enforce_on_create:false,required_status_checks:[{context:"verify (node 20)"},{context:"verify (node 22)"},{context:"audit"},{context:"analyze"}]}}])} | stripnulls' | gh api -X PUT repos/decionis/steward/rulesets/20883088 --input -
 ```
 
 `stripnulls` is not optional. GitHub's `GET` returns `code_coverage.max_coverage_drop: null` and its
@@ -143,7 +143,7 @@ section should stop saying the code "is not yet open source".
       days old, and `Code-Review` counts approving reviews, of which a solo maintainer merging via
       bypass has none. `Signed-Releases` scored 0 correctly — the check inspects release assets and
       the provenance lived only in GitHub's attestation store; releases now carry it.
-- [ ] **Stand up the public demo** on `CDI_DATA_MODE=demo` using the [Dockerfile](./Dockerfile).
+- [ ] **Stand up the public demo** on `STEWARD_DATA_MODE=demo` using the [Dockerfile](./Dockerfile).
       `next.config.ts` sets `X-Robots-Tag: noindex, nofollow, noarchive`; drop that header on the demo
       host only if discoverability matters.
 - [ ] **Announce.** Not before the above. The repository gets one first impression, and the buyers who
@@ -152,8 +152,8 @@ section should stop saying the code "is not yet open source".
 Verifying a release the way a customer would:
 
 ```bash
-gh release download v0.1.1 --repo decionis/cdi --pattern '*.tar.gz'
-gh attestation verify decionis-cdi-0.1.1.tar.gz --repo decionis/cdi
+gh release download v0.1.1 --repo decionis/steward --pattern '*.tar.gz'
+gh attestation verify decionis-steward-0.1.1.tar.gz --repo decionis/steward
 ```
 
 That is the claim `EvidencePack.md` makes to reviewers, so it is worth running once from a clean

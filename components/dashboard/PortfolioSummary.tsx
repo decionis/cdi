@@ -6,7 +6,7 @@ import {
   Users,
 } from "lucide-react";
 import type { PortfolioSummary as PortfolioSummaryModel } from "@/domain/portfolio/PortfolioSnapshot";
-import { CdiFormat } from "@/presentation/format/CdiFormat";
+import { StewardFormat } from "@/presentation/format/StewardFormat";
 import styles from "./Dashboard.module.css";
 
 const summaryDefinitions = [
@@ -58,7 +58,7 @@ export function PortfolioSummary({
             <strong>{summary[definition.key]}</strong>
             <small>
               {definition.key === "totalAccounts"
-                ? `${CdiFormat.percent(summary.averageEvidenceCoverage)} average evidence coverage`
+                ? `${StewardFormat.percent(summary.averageEvidenceCoverage)} average evidence coverage`
                 : "Current governed portfolio"}
             </small>
           </article>
@@ -69,7 +69,9 @@ export function PortfolioSummary({
           <span>Evidence coverage</span>
           <Gauge size={18} aria-hidden="true" />
         </div>
-        <strong>{CdiFormat.percent(summary.averageEvidenceCoverage)}</strong>
+        <strong>
+          {StewardFormat.percent(summary.averageEvidenceCoverage)}
+        </strong>
         <div className={styles.progressTrack}>
           <span style={{ width: `${summary.averageEvidenceCoverage}%` }} />
         </div>

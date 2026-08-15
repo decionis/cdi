@@ -4,7 +4,7 @@ import type {
   AccountState,
   AccountSummary,
 } from "@/domain/accounts/CustomerAccount";
-import { CdiFormat } from "@/presentation/format/CdiFormat";
+import { StewardFormat } from "@/presentation/format/StewardFormat";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import styles from "./Dashboard.module.css";
 
@@ -56,9 +56,11 @@ export function AccountPortfolioTable({
                   </StatusBadge>
                 </td>
                 <td>
-                  <strong>{CdiFormat.percent(account.limitUtilization)}</strong>
+                  <strong>
+                    {StewardFormat.percent(account.limitUtilization)}
+                  </strong>
                   <small>
-                    {CdiFormat.money(
+                    {StewardFormat.money(
                       account.currentLimit.amount,
                       account.currentLimit.currency,
                     )}{" "}
@@ -66,7 +68,9 @@ export function AccountPortfolioTable({
                   </small>
                 </td>
                 <td>
-                  <strong>{CdiFormat.percent(account.evidenceCoverage)}</strong>
+                  <strong>
+                    {StewardFormat.percent(account.evidenceCoverage)}
+                  </strong>
                   <small>Health score {account.healthScore}/100</small>
                 </td>
                 <td>{account.owner}</td>

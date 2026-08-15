@@ -1,9 +1,9 @@
-# Deployable image for Decionis CDI.
+# Deployable image for Decionis Steward.
 #
 # Defaults to demo mode, which is what the public demo deployment runs: no
 # Decionis credentials, deterministic fixtures, nothing persisted. Set
-# CDI_DATA_MODE=live and DECIONIS_API_BASE_URL to run it against the platform —
-# CdiRuntimeConfig fails at startup rather than degrading if live mode is
+# STEWARD_DATA_MODE=live and DECIONIS_API_BASE_URL to run it against the platform —
+# StewardRuntimeConfig fails at startup rather than degrading if live mode is
 # selected without a base URL.
 
 # ---- deps -------------------------------------------------------------------
@@ -21,7 +21,7 @@ WORKDIR /app
 RUN corepack enable
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-# Build-time NODE_ENV=production would make CdiRuntimeConfig default to live and
+# Build-time NODE_ENV=production would make StewardRuntimeConfig default to live and
 # demand DECIONIS_API_BASE_URL. next build sets what it needs itself.
 RUN pnpm build
 
@@ -30,7 +30,7 @@ FROM node:22-alpine AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production \
-    CDI_DATA_MODE=demo \
+    STEWARD_DATA_MODE=demo \
     PORT=3000 \
     HOSTNAME=0.0.0.0 \
     NEXT_TELEMETRY_DISABLED=1

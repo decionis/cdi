@@ -20,7 +20,7 @@ export default async function SignInPage({
     <main className={styles.page}>
       <section className={styles.card}>
         <div className={styles.mark}>D</div>
-        <p className={styles.eyebrow}>Decionis CDI</p>
+        <p className={styles.eyebrow}>Decionis Steward</p>
         <h1>Customer decisions, inside policy.</h1>
         <p className={styles.copy}>
           Sign in through Decionis to review account friction, expansion

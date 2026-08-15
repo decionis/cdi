@@ -1,13 +1,13 @@
 import type { CustomerAccount } from "@/domain/accounts/CustomerAccount";
-import { CdiNotFoundError } from "@/infra/errors/CdiErrors";
-import type { CdiRepository } from "@/infra/repositories/CdiRepository";
+import { StewardNotFoundError } from "@/infra/errors/StewardErrors";
+import type { StewardRepository } from "@/infra/repositories/StewardRepository";
 
 export class AccountService {
-  constructor(private readonly repository: CdiRepository) {}
+  constructor(private readonly repository: StewardRepository) {}
 
   async requireAccount(accountId: string): Promise<CustomerAccount> {
     const account = await this.repository.getAccount(accountId);
-    if (!account) throw new CdiNotFoundError("Account");
+    if (!account) throw new StewardNotFoundError("Account");
     return account;
   }
 }

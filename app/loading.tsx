@@ -2,7 +2,7 @@ import styles from "./Loading.module.css";
 
 export default function LoadingPage() {
   return (
-    <main className={styles.page} aria-label="Loading CDI control center">
+    <main className={styles.page} aria-label="Loading Steward control center">
       <div className={styles.sidebar} />
       <div className={styles.content}>
         <div className={styles.line} />

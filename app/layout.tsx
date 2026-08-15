@@ -3,9 +3,9 @@ import type { ReactNode } from "react";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Decionis CDI",
+  title: "Decionis Steward",
   description:
-    "Governed customer expansion for regulated fintech operations, powered by the Decionis execution control plane.",
+    "Signal capture and decisioning for enterprise customer operations, powered by the Decionis execution control plane.",
   robots: { index: false, follow: false },
 };
 

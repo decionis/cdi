@@ -7,12 +7,12 @@ import {
   Settings2,
   ShieldCheck,
 } from "lucide-react";
-import type { CdiSession } from "@/domain/auth/CdiSession";
+import type { StewardSession } from "@/domain/auth/StewardSession";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import styles from "./AppShell.module.css";
 
 export interface AppShellProps {
-  session: CdiSession;
+  session: StewardSession;
   children: ReactNode;
 }
 
@@ -20,11 +20,15 @@ export function AppShell({ session, children }: AppShellProps) {
   return (
     <div className={styles.shell}>
       <aside className={styles.sidebar}>
-        <Link href="/" className={styles.brand} aria-label="Decionis CDI home">
+        <Link
+          href="/"
+          className={styles.brand}
+          aria-label="Decionis Steward home"
+        >
           <span className={styles.brandMark}>D</span>
           <span>
             <strong>Decionis</strong>
-            <small>CDI</small>
+            <small>Steward</small>
           </span>
         </Link>
 

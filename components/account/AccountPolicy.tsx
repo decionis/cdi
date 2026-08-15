@@ -1,6 +1,6 @@
 import { LockKeyhole } from "lucide-react";
 import type { CustomerAccount } from "@/domain/accounts/CustomerAccount";
-import { CdiFormat } from "@/presentation/format/CdiFormat";
+import { StewardFormat } from "@/presentation/format/StewardFormat";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import styles from "./Account.module.css";
 
@@ -26,7 +26,7 @@ export function AccountPolicy({
         <div>
           <dt>Review threshold</dt>
           <dd>
-            {CdiFormat.money(
+            {StewardFormat.money(
               policy.reviewThreshold.amount,
               policy.reviewThreshold.currency,
             )}
@@ -34,7 +34,7 @@ export function AccountPolicy({
         </div>
         <div>
           <dt>Automatic increase</dt>
-          <dd>{CdiFormat.percent(policy.maximumAutoIncreasePercent)}</dd>
+          <dd>{StewardFormat.percent(policy.maximumAutoIncreasePercent)}</dd>
         </div>
       </dl>
       <StatusBadge
@@ -46,8 +46,8 @@ export function AccountPolicy({
           : "Human approval required"}
       </StatusBadge>
       <p className={styles.policyNote}>
-        CDI may recommend a change. Only Decionis can authorize the exact action
-        under this versioned envelope.
+        Steward may recommend a change. Only Decionis can authorize the exact
+        action under this versioned envelope.
       </p>
     </section>
   );

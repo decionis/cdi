@@ -1,14 +1,14 @@
 name: Feature request
-description: Propose a change or addition to CDI
+description: Propose a change or addition to Steward
 labels: ["enhancement"]
 body:
   - type: markdown
     attributes:
       value: |
-        Before proposing, please read the "What CDI is not" section of
-        [CONTRIBUTING.md](https://github.com/decionis/cdi/blob/master/CONTRIBUTING.md).
+        Before proposing, please read the "What Steward is not" section of
+        [CONTRIBUTING.md](https://github.com/decionis/steward/blob/master/CONTRIBUTING.md).
 
-        CDI renders evidence and forwards operator reviews. It does not own policy evaluation,
+        Steward renders evidence and forwards operator reviews. It does not own policy evaluation,
         credentials, execution, or the audit record — those stay authoritative in the Decionis
         platform. Proposals that move decision authority into this repository will be declined,
         so it is worth checking that first.
@@ -36,7 +36,7 @@ body:
       label: Does this change where decisions are made?
       description: >
         Would it evaluate policy locally, persist customer data in this tier, add a fixture
-        fallback on live failure, or treat CDI's own role check as the security control?
+        fallback on live failure, or treat Steward's own role check as the security control?
       options:
         - "No — presentation, workflow, docs, tooling, or developer experience"
         - "Yes, or I am not sure"

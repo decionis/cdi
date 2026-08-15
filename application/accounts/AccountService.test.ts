@@ -1,16 +1,18 @@
 import { describe, expect, it, vi } from "vitest";
 import { AccountService } from "./AccountService";
-import { CdiNotFoundError } from "@/infra/errors/CdiErrors";
-import type { CdiRepository } from "@/infra/repositories/CdiRepository";
+import { StewardNotFoundError } from "@/infra/errors/StewardErrors";
+import type { StewardRepository } from "@/infra/repositories/StewardRepository";
 import type { CustomerAccount } from "@/domain/accounts/CustomerAccount";
 
-function repositoryReturning(account: CustomerAccount | null): CdiRepository {
+function repositoryReturning(
+  account: CustomerAccount | null,
+): StewardRepository {
   return {
     getPortfolio: vi.fn(),
     getAccount: vi.fn().mockResolvedValue(account),
     getOpportunities: vi.fn(),
     reviewOpportunity: vi.fn(),
-  } as unknown as CdiRepository;
+  } as unknown as StewardRepository;
 }
 
 describe("AccountService", () => {
@@ -22,12 +24,12 @@ describe("AccountService", () => {
   });
 
   it("raises a typed not-found error rather than returning null", async () => {
-    // Route handlers map CdiNotFoundError to a 404. Returning null here would
+    // Route handlers map StewardNotFoundError to a 404. Returning null here would
     // surface as a 500 from a downstream property access instead.
     const service = new AccountService(repositoryReturning(null));
 
     await expect(service.requireAccount("acct-missing")).rejects.toThrow(
-      CdiNotFoundError,
+      StewardNotFoundError,
     );
   });
 

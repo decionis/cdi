@@ -1,6 +1,6 @@
 # Third-Party Licenses
 
-Decionis CDI is licensed under [Apache-2.0](./LICENSE). It redistributes the third-party components
+Decionis Steward is licensed under [Apache-2.0](./LICENSE). It redistributes the third-party components
 below, each under its own license.
 
 **29 packages** in the production dependency tree, resolved from `pnpm-lock.yaml`.
@@ -31,7 +31,7 @@ Next declares one of them as an optional peer dependency, even though none of th
 | CC-BY-4.0         | 1        | Data, not code — see below           |
 | LGPL-3.0-or-later | 1        | Optional platform binary — see below |
 
-No copyleft license applies to any Decionis CDI source file, and no dependency imposes a reciprocal
+No copyleft license applies to any Decionis Steward source file, and no dependency imposes a reciprocal
 obligation on this codebase.
 
 ### Reported as production, but not shipped
@@ -68,7 +68,7 @@ this file on the target platform for a deployment-accurate SBOM.
 ## Notes on non-permissive licenses
 
 Both entries below are transitive dependencies of Next.js. Neither affects the licensing of Decionis
-CDI itself, and both are stated here so that a reviewer does not have to derive the answer.
+Steward itself, and both are stated here so that a reviewer does not have to derive the answer.
 
 ### LGPL-3.0-or-later — `@img/sharp-libvips-darwin-arm64`
 
@@ -76,9 +76,9 @@ Pulled in transitively by Next.js, which uses `sharp` for image optimization.
 
 It is a separate, unmodified, dynamically-linked platform binary of the libvips library. This is the
 arrangement contemplated by LGPL §4: it imposes no reciprocal source-disclosure obligation on
-Decionis CDI, and the library is redistributed unmodified.
+Decionis Steward, and the library is redistributed unmodified.
 
-**Decionis CDI does not use `next/image` anywhere in its source.** The dependency is present only
+**Decionis Steward does not use `next/image` anywhere in its source.** The dependency is present only
 because Next.js declares it, and it is not exercised at runtime by this application. Where an
 organization's policy prohibits LGPL components outright, the dependency can be excluded at build
 time without any loss of functionality.

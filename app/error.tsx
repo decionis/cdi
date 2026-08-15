@@ -16,7 +16,7 @@ export default function ErrorPage({
           <AlertTriangle size={22} aria-hidden="true" />
         </span>
         <p className={styles.eyebrow}>Evidence unavailable</p>
-        <h1>CDI could not assemble this control-center view.</h1>
+        <h1>Steward could not assemble this control-center view.</h1>
         <p>
           No policy decision was changed. Check the Decionis connection or retry
           the evidence request.

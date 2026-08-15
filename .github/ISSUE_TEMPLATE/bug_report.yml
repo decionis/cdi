@@ -1,5 +1,5 @@
 name: Bug report
-description: Something in CDI behaves incorrectly
+description: Something in Steward behaves incorrectly
 labels: ["bug"]
 body:
   - type: markdown
@@ -8,7 +8,7 @@ body:
         Thanks for taking the time to file this.
 
         **If this is a security vulnerability, stop and read
-        [SECURITY.md](https://github.com/decionis/cdi/blob/master/SECURITY.md) instead.**
+        [SECURITY.md](https://github.com/decionis/steward/blob/master/SECURITY.md) instead.**
         Do not describe an authentication bypass, a role-check bypass, or cross-organization
         data exposure in a public issue.
 
@@ -18,11 +18,11 @@ body:
       label: Data mode
       description: >
         The first question on every report. Demo mode serves deterministic fixtures from
-        DemoCdiRepository; live mode talks to the Decionis platform. The same symptom usually
+        DemoStewardRepository; live mode talks to the Decionis platform. The same symptom usually
         has completely different causes in each.
       options:
-        - demo (CDI_DATA_MODE=demo, or the default outside production)
-        - live (CDI_DATA_MODE=live)
+        - demo (STEWARD_DATA_MODE=demo, or the default outside production)
+        - live (STEWARD_DATA_MODE=live)
         - Not sure
     validations:
       required: true

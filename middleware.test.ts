@@ -14,7 +14,7 @@ function request(
     .map(([name, value]) => `${name}=${value}`)
     .join("; ");
 
-  return new NextRequest(`https://cdi.decionis.com${pathname}`, {
+  return new NextRequest(`https://steward.decionis.com${pathname}`, {
     headers: cookieHeader ? { cookie: cookieHeader } : {},
   });
 }
@@ -35,15 +35,15 @@ afterEach(() => {
 
 describe("middleware — demo mode", () => {
   it("lets every request through when the data mode is demo", () => {
-    vi.stubEnv("CDI_DATA_MODE", "demo");
+    vi.stubEnv("STEWARD_DATA_MODE", "demo");
 
-    for (const path of ["/", "/accounts/acct-kilo", "/api/cdi/portfolio"]) {
+    for (const path of ["/", "/accounts/acct-kilo", "/api/steward/portfolio"]) {
       expect(isPassThrough(middleware(request(path)))).toBe(true);
     }
   });
 
   it("defaults to demo outside production", () => {
-    vi.stubEnv("CDI_DATA_MODE", "");
+    vi.stubEnv("STEWARD_DATA_MODE", "");
     vi.stubEnv("NODE_ENV", "development");
 
     expect(isPassThrough(middleware(request("/")))).toBe(true);
@@ -52,13 +52,13 @@ describe("middleware — demo mode", () => {
 
 describe("middleware — live mode", () => {
   function goLive() {
-    vi.stubEnv("CDI_DATA_MODE", "live");
+    vi.stubEnv("STEWARD_DATA_MODE", "live");
   }
 
   it("defaults to live in production even with no explicit data mode", () => {
     // The safe default: an unconfigured production deployment gates requests
     // rather than serving them unauthenticated.
-    vi.stubEnv("CDI_DATA_MODE", "");
+    vi.stubEnv("STEWARD_DATA_MODE", "");
     vi.stubEnv("NODE_ENV", "production");
 
     const response = middleware(request("/"));
@@ -83,7 +83,7 @@ describe("middleware — live mode", () => {
     // a parse error instead of the actual authentication failure.
     goLive();
 
-    const response = middleware(request("/api/cdi/portfolio"));
+    const response = middleware(request("/api/steward/portfolio"));
 
     expect(response.status).toBe(401);
     await expect(response.json()).resolves.toMatchObject({
@@ -95,7 +95,9 @@ describe("middleware — live mode", () => {
     goLive();
 
     expect(
-      isPassThrough(middleware(request("/api/cdi/portfolio", validSession))),
+      isPassThrough(
+        middleware(request("/api/steward/portfolio", validSession)),
+      ),
     ).toBe(true);
   });
 
@@ -103,7 +105,7 @@ describe("middleware — live mode", () => {
     goLive();
 
     const response = middleware(
-      request("/api/cdi/portfolio", { decionis_access_token: "token-abc" }),
+      request("/api/steward/portfolio", { decionis_access_token: "token-abc" }),
     );
 
     expect(response.status).toBe(401);
@@ -113,7 +115,7 @@ describe("middleware — live mode", () => {
     goLive();
 
     const response = middleware(
-      request("/api/cdi/portfolio", { decionis_org_id: "org-1" }),
+      request("/api/steward/portfolio", { decionis_org_id: "org-1" }),
     );
 
     expect(response.status).toBe(401);
@@ -123,7 +125,7 @@ describe("middleware — live mode", () => {
     goLive();
 
     const response = middleware(
-      request("/api/cdi/portfolio", {
+      request("/api/steward/portfolio", {
         decionis_access_token: "",
         decionis_org_id: "org-1",
       }),
@@ -143,10 +145,10 @@ describe("middleware — live mode", () => {
     goLive();
 
     for (const path of [
-      "/api/cdi/portfolio",
-      "/api/cdi/opportunities",
-      "/api/cdi/accounts/acct-kilo",
-      "/api/cdi/opportunities/opp-1/review",
+      "/api/steward/portfolio",
+      "/api/steward/opportunities",
+      "/api/steward/accounts/acct-kilo",
+      "/api/steward/opportunities/opp-1/review",
     ]) {
       expect(middleware(request(path)).status).toBe(401);
     }
@@ -154,13 +156,13 @@ describe("middleware — live mode", () => {
 
   it("honours configured cookie names", () => {
     goLive();
-    vi.stubEnv("CDI_ACCESS_TOKEN_COOKIE", "custom_token");
-    vi.stubEnv("CDI_ORG_ID_COOKIE", "custom_org");
+    vi.stubEnv("STEWARD_ACCESS_TOKEN_COOKIE", "custom_token");
+    vi.stubEnv("STEWARD_ORG_ID_COOKIE", "custom_org");
 
     expect(
       isPassThrough(
         middleware(
-          request("/api/cdi/portfolio", {
+          request("/api/steward/portfolio", {
             custom_token: "token-abc",
             custom_org: "org-1",
           }),
@@ -169,9 +171,9 @@ describe("middleware — live mode", () => {
     ).toBe(true);
 
     // The default names must not be accepted once custom ones are configured.
-    expect(middleware(request("/api/cdi/portfolio", validSession)).status).toBe(
-      401,
-    );
+    expect(
+      middleware(request("/api/steward/portfolio", validSession)).status,
+    ).toBe(401);
   });
 });
 
@@ -205,13 +207,13 @@ describe("middleware — Content-Security-Policy", () => {
     // A demo deployment is public-facing. The policy is not a live-mode
     // concern, and gating it behind the session check would have left the
     // public demo without one.
-    vi.stubEnv("CDI_DATA_MODE", "demo");
+    vi.stubEnv("STEWARD_DATA_MODE", "demo");
 
     expect(policyFor(middleware(request("/")))).toContain("default-src 'self'");
   });
 
   it("is applied to an authenticated live request", () => {
-    vi.stubEnv("CDI_DATA_MODE", "live");
+    vi.stubEnv("STEWARD_DATA_MODE", "live");
 
     expect(policyFor(middleware(request("/", validSession)))).toContain(
       "default-src 'self'",
@@ -220,16 +222,16 @@ describe("middleware — Content-Security-Policy", () => {
 
   it("is applied to a 401 refusal", () => {
     // A refused request is still a response leaving this application.
-    vi.stubEnv("CDI_DATA_MODE", "live");
+    vi.stubEnv("STEWARD_DATA_MODE", "live");
 
-    const response = middleware(request("/api/cdi/portfolio"));
+    const response = middleware(request("/api/steward/portfolio"));
 
     expect(response.status).toBe(401);
     expect(policyFor(response)).toContain("default-src 'self'");
   });
 
   it("is applied to a sign-in redirect", () => {
-    vi.stubEnv("CDI_DATA_MODE", "live");
+    vi.stubEnv("STEWARD_DATA_MODE", "live");
 
     const response = middleware(request("/accounts/acct-kilo"));
 
@@ -238,7 +240,7 @@ describe("middleware — Content-Security-Policy", () => {
   });
 
   it("is applied to the unauthenticated sign-in page", () => {
-    vi.stubEnv("CDI_DATA_MODE", "live");
+    vi.stubEnv("STEWARD_DATA_MODE", "live");
 
     const response = middleware(request("/sign-in"));
 
@@ -247,7 +249,7 @@ describe("middleware — Content-Security-Policy", () => {
   });
 
   it("forbids framing, plugins, and base-tag hijacking", () => {
-    vi.stubEnv("CDI_DATA_MODE", "demo");
+    vi.stubEnv("STEWARD_DATA_MODE", "demo");
     const policy = policyFor(middleware(request("/")));
 
     expect(policy).toContain("frame-ancestors 'none'");
@@ -259,7 +261,7 @@ describe("middleware — Content-Security-Policy", () => {
   it("never allows inline or eval script in production", () => {
     // The whole point of the nonce. If these ever appear in a production
     // policy, the CSP is decorative.
-    vi.stubEnv("CDI_DATA_MODE", "live");
+    vi.stubEnv("STEWARD_DATA_MODE", "live");
     vi.stubEnv("NODE_ENV", "production");
 
     const scriptSrc = policyFor(middleware(request("/", validSession)))
@@ -275,7 +277,7 @@ describe("middleware — Content-Security-Policy", () => {
 
   it("issues a fresh nonce for every request", () => {
     // A reused nonce is no better than 'unsafe-inline'.
-    vi.stubEnv("CDI_DATA_MODE", "demo");
+    vi.stubEnv("STEWARD_DATA_MODE", "demo");
 
     const nonces = Array.from({ length: 5 }, () => {
       const match = /'nonce-([^']+)'/.exec(policyFor(middleware(request("/"))));
@@ -287,7 +289,7 @@ describe("middleware — Content-Security-Policy", () => {
   });
 
   it("forwards the nonce to the app so Next can stamp its own scripts", () => {
-    vi.stubEnv("CDI_DATA_MODE", "demo");
+    vi.stubEnv("STEWARD_DATA_MODE", "demo");
 
     const response = middleware(request("/"));
     const forwarded = response.headers.get("x-middleware-request-x-nonce");

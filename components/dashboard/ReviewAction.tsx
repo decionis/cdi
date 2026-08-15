@@ -20,7 +20,7 @@ export function ReviewAction({ opportunityId, canReview }: ReviewActionProps) {
     setMessage(null);
     try {
       const response = await fetch(
-        `/api/cdi/opportunities/${opportunityId}/review`,
+        `/api/steward/opportunities/${opportunityId}/review`,
         {
           method: "POST",
           headers: { "content-type": "application/json" },

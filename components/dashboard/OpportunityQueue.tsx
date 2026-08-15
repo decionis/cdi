@@ -2,7 +2,7 @@ import Link from "next/link";
 import { RelativeTime } from "@/components/common/RelativeTime";
 import { ArrowRight, FileKey2 } from "lucide-react";
 import type { CustomerOpportunity } from "@/domain/opportunities/CustomerOpportunity";
-import { CdiFormat } from "@/presentation/format/CdiFormat";
+import { StewardFormat } from "@/presentation/format/StewardFormat";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import { ReviewAction } from "./ReviewAction";
 import styles from "./Dashboard.module.css";
@@ -68,12 +68,14 @@ export function OpportunityQueue({
             >
               <div className={styles.metricPair}>
                 <span>Confidence</span>
-                <strong>{CdiFormat.confidence(opportunity.confidence)}</strong>
+                <strong>
+                  {StewardFormat.confidence(opportunity.confidence)}
+                </strong>
               </div>
               <div className={styles.metricPair}>
                 <span>Evidence</span>
                 <strong>
-                  {CdiFormat.percent(opportunity.evidenceCoverage)}
+                  {StewardFormat.percent(opportunity.evidenceCoverage)}
                 </strong>
               </div>
               <div className={styles.progressTrack}>

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { ArrowLeft, Gauge, MapPin } from "lucide-react";
 import type { CustomerAccount } from "@/domain/accounts/CustomerAccount";
-import { CdiFormat } from "@/presentation/format/CdiFormat";
+import { StewardFormat } from "@/presentation/format/StewardFormat";
 import { StatusBadge } from "@/components/common/StatusBadge";
 import styles from "./Account.module.css";
 
@@ -39,16 +39,16 @@ export function AccountHeader({ account }: { account: CustomerAccount }) {
             <span>Processing envelope</span>
           </div>
           <strong>
-            {CdiFormat.percent(account.limitUtilization)} utilized
+            {StewardFormat.percent(account.limitUtilization)} utilized
           </strong>
           <small>
-            {CdiFormat.money(
+            {StewardFormat.money(
               account.currentLimit.amount,
               account.currentLimit.currency,
             )}{" "}
             current
             {account.proposedLimit
-              ? ` · ${CdiFormat.money(account.proposedLimit.amount, account.proposedLimit.currency)} proposed`
+              ? ` · ${StewardFormat.money(account.proposedLimit.amount, account.proposedLimit.currency)} proposed`
               : ""}
           </small>
         </div>
