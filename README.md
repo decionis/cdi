@@ -198,9 +198,10 @@ pnpm licenses:list    # Production dependency licenses
 
 `pnpm verify` is the gate — run it before opening a pull request.
 
-CI runs it on Node 20 and 22 (`.github/workflows/verify.yml`), and separately runs `pnpm audit --prod`
-and `pnpm licenses:check` (`.github/workflows/audit.yml`), the latter two also on a weekly schedule so
-an advisory published against an unchanged tree still surfaces. All three must pass to merge.
+CI runs it on Node 20 and 22 (`.github/workflows/verify.yml`), and separately runs the supply-chain
+gate (`.github/workflows/audit.yml`) — a production-tree audit at any severity, a whole-tree audit at
+high and critical, and the license policy check — on every pull request and again weekly, so an
+advisory published against an unchanged tree still surfaces.
 
 ### Dependency policy
 

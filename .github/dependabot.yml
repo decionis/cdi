@@ -1,0 +1,74 @@
+version: 2
+
+# Dependabot was running on defaults with no configuration, which produced four
+# consecutive failed security-update jobs. This gives it the shape W2.3 of
+# OpenSource.md asked for: grouped, weekly, and quiet enough that a Dependabot
+# pull request is worth reading.
+#
+# Note what this file does NOT control: security updates. Those are driven by
+# advisories rather than by schedule, and ignore `groups` and `schedule`. The
+# way to stop a security update failing is to not have the vulnerable version.
+
+updates:
+  - package-ecosystem: npm
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "05:00"
+      timezone: Etc/UTC
+    open-pull-requests-limit: 5
+    versioning-strategy: increase
+    labels:
+      - dependencies
+    commit-message:
+      prefix: chore
+      include: scope
+
+    groups:
+      # One pull request per ecosystem cluster rather than per package. These
+      # move together and are pointless to review individually.
+      next:
+        patterns:
+          - "next"
+          - "@next/*"
+          - "eslint-config-next"
+      react:
+        patterns:
+          - "react"
+          - "react-dom"
+          - "@types/react"
+          - "@types/react-dom"
+      linting:
+        patterns:
+          - "eslint"
+          - "@eslint/*"
+          - "prettier"
+      testing:
+        patterns:
+          - "vitest"
+          - "@vitest/*"
+          - "@testing-library/*"
+          - "jsdom"
+      types:
+        patterns:
+          - "@types/*"
+        exclude-patterns:
+          - "@types/react"
+          - "@types/react-dom"
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "05:00"
+      timezone: Etc/UTC
+    labels:
+      - dependencies
+    commit-message:
+      prefix: ci
+    groups:
+      actions:
+        patterns:
+          - "*"

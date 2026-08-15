@@ -9,45 +9,45 @@
 # paths are listed after the general default.
 
 # Default owner for anything not matched below.
-*                           @decionis/cdi-maintainers
+*                           @ocularminds
 
 # --- Trust boundary. These files decide who may do what. ---------------------
 
 # Session gating for every request: live-mode enforcement, the health-probe
 # exemption, and 401-vs-redirect behaviour.
-/middleware.ts              @decionis/cdi-security @decionis/cdi-maintainers
+/middleware.ts              @ocularminds
 
 # Session construction and role parsing, including the VIEWER privilege floor.
-/infra/auth/                @decionis/cdi-security @decionis/cdi-maintainers
+/infra/auth/                @ocularminds
 
 # Credential handling, the upstream gateway, and error mapping — the code that
 # decides what leaves this tier and what detail reaches a caller.
-/infra/api/                 @decionis/cdi-security @decionis/cdi-maintainers
+/infra/api/                 @ocularminds
 
 # Runtime configuration: the demo/live switch, which is what keeps the
 # privileged demo session out of production.
-/infra/config/              @decionis/cdi-security @decionis/cdi-maintainers
+/infra/config/              @ocularminds
 
 # Typed contracts. A loosened schema silently widens what this app will accept
 # from upstream.
-/domain/                    @decionis/cdi-security @decionis/cdi-maintainers
+/domain/                    @ocularminds
 
 # Permission checks live here, not in the UI.
-/application/               @decionis/cdi-security @decionis/cdi-maintainers
+/application/               @ocularminds
 
 # --- Supply chain and published policy ---------------------------------------
 
 # Dependency changes, the license policy gate, and CI. A change here can
 # disable the checks that protect everything above.
-/package.json               @decionis/cdi-security @decionis/cdi-maintainers
-/pnpm-lock.yaml             @decionis/cdi-security @decionis/cdi-maintainers
-/scripts/                   @decionis/cdi-security @decionis/cdi-maintainers
-/.github/workflows/         @decionis/cdi-security @decionis/cdi-maintainers
-/.github/CODEOWNERS         @decionis/cdi-security @decionis/cdi-maintainers
+/package.json               @ocularminds
+/pnpm-lock.yaml             @ocularminds
+/scripts/                   @ocularminds
+/.github/workflows/         @ocularminds
+/.github/CODEOWNERS         @ocularminds
 
 # Documents we publish as commitments to customers and reporters.
-/LICENSE                    @decionis/cdi-maintainers
-/NOTICE                     @decionis/cdi-maintainers
-/SECURITY.md                @decionis/cdi-security @decionis/cdi-maintainers
-/ThreatModel.md             @decionis/cdi-security @decionis/cdi-maintainers
-/ThirdPartyLicenses.md      @decionis/cdi-security @decionis/cdi-maintainers
+/LICENSE                    @ocularminds
+/NOTICE                     @ocularminds
+/SECURITY.md                @ocularminds
+/ThreatModel.md             @ocularminds
+/ThirdPartyLicenses.md      @ocularminds

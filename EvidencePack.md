@@ -64,6 +64,9 @@ pnpm verify
 # No known vulnerabilities in the production dependency tree
 pnpm audit --prod
 
+# ...nor any high or critical in the build toolchain
+pnpm audit --audit-level high
+
 # Every production dependency within the approved license set
 pnpm licenses:check
 

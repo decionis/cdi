@@ -50,11 +50,20 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
-      - name: Known vulnerabilities
-        # Production tree only. Dev tooling is not redistributed in the deployed
-        # artifact, and failing the gate on a Vitest transitive would train people
-        # to ignore it.
+      - name: Known vulnerabilities (production tree)
+        # What ships. Any severity fails: a vulnerable package in the deployed
+        # artifact is not something to triage at leisure.
         run: pnpm audit --prod
+
+      - name: Known vulnerabilities (build toolchain)
+        # Dev dependencies are not redistributed, but they execute on this runner
+        # with access to the token and the source, so "production only" was an
+        # incomplete answer — it was hiding a critical in vitest.
+        #
+        # High and critical only. Moderates in dev tooling churn constantly and
+        # blocking on them is how a gate gets ignored; the weekly run below still
+        # surfaces them.
+        run: pnpm audit --audit-level high
 
       - name: License policy
         run: pnpm licenses:check

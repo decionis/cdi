@@ -37,10 +37,22 @@ you integrate against these types.
 
 - `@decionis-ai/sdk` — declared as a dependency but imported by no source file.
 
+- `.github/dependabot.yml` — grouped weekly updates for npm and GitHub Actions. Dependabot had been
+  running unconfigured, which produced four consecutive failed security-update jobs.
+- Nonce-based Content-Security-Policy, applied by `middleware.ts` to every response in both data
+  modes.
+- The OpenSSF Scorecard workflow is manual-only until the repository is public; its GraphQL queries
+  are unavailable to the default token on a private repository.
+
 ### Security
 
 - Resolved 15 known advisories in the production dependency tree (8 high, 7 moderate), all reachable
   through `next` and its transitive dependencies. `pnpm audit --prod` reports clean.
+- Resolved 10 advisories in the development tree (1 critical, 6 high, 3 moderate) — `vitest` to 3.x,
+  and overrides pinning `vite`, `esbuild`, `js-yaml`, and `brace-expansion` above their vulnerable
+  ranges. The whole tree now audits clean.
+- The CI audit gate now covers the build toolchain as well as the production tree, at high and
+  critical severity. Auditing production only had been hiding a critical in the test runner.
 
 ## [0.1.0] — unreleased
 
