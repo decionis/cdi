@@ -35,7 +35,10 @@ Measured against the current tree this session, not estimated.
 | No `LICENSE` file, so the code is all-rights-reserved                                     | Blocker                | ✅ Fixed      |
 | LGPL-3.0-or-later present in the production tree (`@img/sharp-libvips-*`)                 | High — needs an answer | ✅ Documented |
 | No CI or audit enforcement                                                                | High                   | ✅ Fixed      |
-| **No branch protection; no signed or attested releases**                                  | **High**               | Open          |
+| No signed or attested releases, no SBOM                                                   | High                   | ✅ Fixed      |
+| Branch protection — PR + code-owner review enforced                                       | High                   | ✅ Fixed      |
+| **Required status checks absent, so a PR can merge with CI red**                          | **High**               | **Open**      |
+| **Push protection, Dependabot, and private vuln reporting all disabled**                  | **High**               | **Open**      |
 | Auth and gateway paths (`middleware.ts`, `CdiSessionResolver`, `JsonHttpClient`) untested | High                   | ✅ Fixed      |
 | No `SECURITY.md`, no disclosure policy, no response-time commitment                       | High                   | ✅ Fixed      |
 | SDK dependency `@decionis-ai/sdk` declared but imported nowhere                           | Medium                 | ✅ Fixed      |
@@ -137,20 +140,76 @@ This is where an enterprise buyer's opinion is actually formed.
    fail permanently on a Linux runner against a macOS-generated file. Asserting the license set is
    platform-independent and is the property a reviewer actually cares about.
 
-4. **Branch protection on `master`** — required checks, required review, linear history. **Needs repo
-   admin; the workflows above do nothing until their checks are marked required.**
+4. ⚠️ **Branch protection on `master` — active, but CI is still not required.** The ruleset
+   "Decionis Protection Rules" is enforcing, with no bypass actors. Verified against the API rather
+   than the settings UI, because a ruleset can look configured and enforce nothing:
+
+   | Rule                            | State                                                  |
+   | ------------------------------- | ------------------------------------------------------ |
+   | Pull request required           | ✅ active                                              |
+   | Approving reviews               | ✅ 1                                                   |
+   | Code-owner review               | ✅ required — CODEOWNERS is live                       |
+   | Bypass actors                   | ✅ none, so admins cannot merge around it              |
+   | `deletion`, `non_fast_forward`  | ✅ active                                              |
+   | **`required_status_checks`**    | ❌ **empty**                                           |
+   | `code_scanning` (CodeQL, high+) | ⚠️ requires results CodeQL cannot produce (see item 8) |
+   | `code_coverage` (80% minimum)   | ⚠️ this repository generates no coverage report at all |
+
+   Direct pushes to `master` are genuinely blocked, which is the larger half. But **`verify (node 20)`,
+   `verify (node 22)`, and `audit` are not required**, so a pull request can still merge with CI fully
+   red provided a code owner approves. Add the **Require status checks to pass** rule naming those
+   three contexts.
+
+   The other two rules reference data that does not exist. `code_scanning` demands CodeQL results
+   while Code Security is disabled, so CodeQL can never upload any; `code_coverage` demands 80% while
+   `pnpm test` runs without `--coverage` and nothing is ever reported. Either enable the underlying
+   capability or remove the rule — a gate waiting on a signal that never arrives is indistinguishable
+   from a gate that is off, and harder to notice.
+
 5. ✅ **Every GitHub Action pinned by commit SHA**, not tag, with the version in a trailing comment.
    Tags are mutable; a governance product that resolves build steps by moving reference undercuts its
-   own supply-chain story.
-6. **SBOM per release** — CycloneDX JSON attached to the GitHub release. Increasingly a hard
-   procurement requirement rather than a differentiator, and it is one CI step.
-7. **Build provenance** — SLSA attestation via `actions/attest-build-provenance`. If anything is ever
-   published to npm, use `--provenance`.
-8. **Enable CodeQL, secret scanning, and push protection** at the repo level so history stays clean
-   after launch.
-9. **Publish the OpenSSF Scorecard badge** once the above lands. It gives procurement a third-party
-   number to cite instead of taking our word for the posture — which is the entire point of doing
-   this in the open.
+   own supply-chain story. Verified across all five workflows.
+6. ✅ **SBOM per release** — [`release.yml`](../.github/workflows/release.yml) generates a CycloneDX
+   JSON SBOM with Syft and attaches it to the GitHub release. Generated **on the Linux build platform
+   from the actually-resolved tree**, which is the point: the checked-in inventory is macOS-generated
+   and platform-conditional, so only a build-time SBOM matches what ships.
+7. ✅ **Build provenance** — the same workflow produces a signed SLSA attestation over the deployable
+   tarball via `actions/attest-build-provenance`. A recipient verifies it with
+   `gh attestation verify <tarball> --repo decionis/cdi`, which confirms the artifact came from this
+   workflow and this commit rather than from someone's laptop. The release notes carry that command.
+   Nothing is published to npm (`private: true`), so `--provenance` does not apply.
+8. **Repository security settings — partially done, and the gaps are the interesting part:**
+
+   | Setting                             | State                                                    |
+   | ----------------------------------- | -------------------------------------------------------- |
+   | Secret scanning                     | ✅ enabled                                               |
+   | **Push protection**                 | ❌ **disabled** — secrets can still be pushed            |
+   | **Dependabot security updates**     | ❌ **disabled**                                          |
+   | **Private vulnerability reporting** | ❌ not enabled — `SECURITY.md`'s primary channel 404s    |
+   | CodeQL workflow                     | ✅ [`codeql.yml`](../.github/workflows/codeql.yml) added |
+
+   Secret scanning without push protection detects a leaked credential _after_ it is in history,
+   which for a fintech repository about to go public is the expensive half. All four toggles need
+   repo admin.
+
+   **CodeQL runs but cannot publish.** Confirmed on the first PR run: the analysis completes — the
+   database builds, every query runs, SARIF is exported — and then the upload is rejected with
+   _"Code Security must be enabled for this repository to use code scanning."_ It is free on public
+   repositories; on an internal one it needs the entitlement.
+
+   The upload step is therefore `continue-on-error` with a loud warning annotation and a job summary,
+   rather than either a permanently red check (which teaches people to ignore CI) or a silent pass
+   (which is the "looks green, ran nothing" failure this plan already fixed once). **Remove
+   `continue-on-error` as soon as Code Security is enabled**, so a genuine analysis failure blocks
+   again. If the entitlement is not coming, delete the workflow and record that decision here — a
+   check that silently finds nothing is worse than no check.
+
+9. ✅ **OpenSSF Scorecard workflow added**, and deliberately not yet publishing.
+   [`scorecard.yml`](../.github/workflows/scorecard.yml) runs weekly with `publish_results: false`,
+   because publishing requires a **public** repository and this one is `internal`. **There is no
+   badge yet** — flip `publish_results` and add the badge in the same change that makes the
+   repository public. Several checks (Branch-Protection, Signed-Releases) return limited results
+   until then, which also makes it a useful dry-run of how we will score.
 
 ### W3 — Security assurance artifacts ✅ Done (pending two sign-offs)
 
@@ -176,19 +235,19 @@ makes no outbound request to any host but `DECIONIS_API_BASE_URL`, and the sessi
 chain is entirely server-side. That last one is now enforced by `ServerClientBoundary.test.ts` — see
 W4.
 
-**Three sign-offs before this goes public:**
+Sign-off status:
 
-- **Private vulnerability reporting must be enabled** in repository settings (Settings → Code security
-  → Private vulnerability reporting). `SECURITY.md` names GitHub Security Advisories as the primary
-  channel; until that setting is on, the "Report a vulnerability" link 404s and the documented process
-  does not exist. Needs repo admin.
-- **`security@decionis.com` must exist and be monitored.** A disclosure address that bounces is worse
-  than none; it converts a responsible reporter into a public one. The same applies to the Decionis
-  platform security contact that `SECURITY.md` routes out-of-scope reports to — it is referenced but
-  not yet named, and should be before launch.
-- **The response targets are a proposal, not a commitment** — 2 business days to acknowledge,
-  5 to assess, 30 days for high/critical, 90 for low/medium. Confirm or change them. A missed public
-  SLA does more damage than a slower published one.
+- ✅ **`security@decionis.com` confirmed monitored.**
+- ⚠️ **Private vulnerability reporting is still not enabled** (Settings → Code security → Private
+  vulnerability reporting). `SECURITY.md` names GitHub Security Advisories as the **primary** channel;
+  until that setting is on, the "Report a vulnerability" link 404s and a reporter falls back to email
+  — or, worse, to a public issue. Needs repo admin.
+- ⚠️ **The Decionis platform security contact is referenced but not named.** `SECURITY.md` routes
+  out-of-scope reports "to the Decionis platform security contact" without saying who that is. Name
+  it before launch, or the routing instruction is unactionable.
+- ⚠️ **The response targets are still a proposal, not a commitment** — 2 business days to
+  acknowledge, 5 to assess, 30 days for high/critical, 90 for low/medium. Confirm or change them.
+  A missed public SLA does more damage than a slower published one.
 
 ### W4 — Make the claims verifiable ✅ Done
 
@@ -258,25 +317,65 @@ exemption `page.tsx` and the workflows get.
   never a barrier — just dead weight, and the first thing a reviewer greps for. If a real integration
   needs it, it comes back with the code that uses it.
 
-**Two sign-offs before this goes public:**
+Sign-off status:
 
-- **The `@decionis/cdi-maintainers` and `@decionis/cdi-security` GitHub teams must exist**, with
-  members, or CODEOWNERS silently matches nothing and required-review enforcement is theatre.
-- **`conduct@decionis.com` must exist and be monitored.** Same reasoning as the security address: a
-  code of conduct whose reporting channel bounces is worse than not publishing one.
+- ✅ **`conduct@decionis.com` confirmed monitored.**
+- ⚠️ **The `@decionis/cdi-maintainers` and `@decionis/cdi-security` GitHub teams must exist**, with
+  members, or CODEOWNERS silently matches nothing. Combined with the branch-protection gap in W2.4,
+  code-owner review is currently enforcing nothing at all.
+- ⚠️ **The `dependencies` label does not exist** in this repository. The scheduled audit job creates
+  its tracking issue with `--label dependencies`, and `gh issue create` fails on an unknown label —
+  so the first weekly failure would produce no issue and no notification. One-line fix:
 
-### W6 — Launch
+  ```bash
+  gh label create dependencies --repo decionis/cdi --color 0366d6 --description "Dependency and supply-chain updates"
+  ```
 
-- **Screenshots in the README** — the largest remaining documentation gap for a product that is
-  entirely a UI.
-- **A public demo deployment** on `CDI_DATA_MODE=demo`. The app already builds `output: "standalone"`,
-  so this is nearly free. Note `next.config.ts` sets `X-Robots-Tag: noindex`; drop it on the demo host
-  only if discoverability matters.
-- **An evidence pack** (below) — the actual sales artifact this whole plan produces.
-- **Semver from 0.1.0**, `Changelog.md`, tagged releases. State plainly that `domain/` contracts may
-  break before 1.0.
-- Announce only after W1–W4 are done. The repository gets one first impression, and the buyers who
-  look earliest are the ones who matter most.
+### W6 — Launch — mostly done
+
+- ✅ **[`EvidencePack.md`](../EvidencePack.md)** — the artifact this whole plan exists to produce.
+  A questionnaire-row-to-artifact index, a table proving each boundary control with its file _and_
+  its test, the commands a reviewer can run, and a section of fast answers that deliberately includes
+  the weak ones: no CSP, no pen test, no SOC 2 in this tier. A reviewer finds gaps faster than we can
+  hide them, and a vendor that states its own is easier to trust on the rest.
+- ✅ **[`CHANGELOG.md`](../CHANGELOG.md)** — Keep a Changelog format, semver from 0.1.0, stating
+  plainly that `domain/` contracts may break before 1.0.
+- ✅ **Deployment recipe** — [`Dockerfile`](../Dockerfile) and `.dockerignore`, which is what makes a
+  public demo deployment cheap. Multi-stage, `--frozen-lockfile` so the image cannot resolve a
+  different tree than CI audited, non-root, telemetry off, `HEALTHCHECK` on `/api/health`.
+  **Verified end to end**: image builds, container reports `healthy`, `/api/cdi/portfolio` serves
+  `DEMO` with 4 accounts, `id` confirms uid 1000, security headers present and no `x-powered-by`.
+- ✅ **README deployment section**, including the non-obvious part: `.next/standalone` is not
+  self-sufficient — `next build` emits static assets separately and `.next/static` must be copied
+  alongside the server.
+- ✅ **The application itself was run and verified**, rather than described from the source. Demo mode
+  matches what the README claims: the fixture operator renders as `ADMIN · APPROVER`, the `DEMO
+EVIDENCE` badge is present, and every review control is captioned "Records a review only; no
+  downstream limit is changed" — the trust boundary stated in the interface, not just in the docs.
+  The BFF was exercised directly: `/api/health` open, portfolio `DEMO` with 4 accounts, a review
+  returning a deterministic `HELD` plus dossier reference, and an invalid decision producing
+  `400 INVALID_REQUEST` with Zod issues — `CdiApiErrorMapper` behaving in the running app exactly as
+  its unit tests assert.
+
+Still open:
+
+- ⚠️ **Screenshots — the one W6 item not delivered.** There is no doubt about _what_ to capture: the
+  control center at desktop width, the governed action queue, and `/accounts/acct-atlas`. Producing
+  committed image assets needs either a headless capture script — which means adding Playwright as a
+  devDependency purely for screenshots — or someone taking three PNGs by hand. **Recommend by hand
+  for now**; revisit a capture script only if they start going stale. Do not add placeholder image
+  links in the meantime: a README with broken images is worse than one with none.
+- **A public demo deployment.** The Dockerfile makes this a hosting decision rather than an
+  engineering one. Note `next.config.ts` sets `X-Robots-Tag: noindex, nofollow, noarchive`; drop that
+  header on the demo host only if discoverability matters.
+- **Seed six to ten `good first issue`s** that are genuinely small and genuinely wanted —
+  accessibility on the portfolio table, empty and error states, `CdiFormat` edge cases, a CSP. An
+  empty issue tracker converts nobody.
+- **Prove the release pipeline before trusting a tag.** `release.yml` has never executed. Run it via
+  `workflow_dispatch` with `dry_run: true` first; it uploads the tarball and SBOM as artifacts
+  without publishing anything.
+- **Announce only after the repository-settings gaps in W2.4 and W2.8 are closed.** The repository
+  gets one first impression, and the buyers who look earliest are the ones who matter most.
 
 ## Sequencing
 
