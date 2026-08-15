@@ -12,6 +12,27 @@ you integrate against these types.
 
 Nothing yet.
 
+## [0.1.1] — 2026-08-15
+
+Supersedes 0.1.0, whose SBOM asset was unusable. The application itself is unchanged; 0.1.0's tarball
+and its provenance attestation remain valid, and 0.1.0 is left published rather than retracted so
+that anything already referencing it still resolves.
+
+### Fixed
+
+- **The release SBOM described nothing.** 0.1.0 shipped a 419-byte CycloneDX document with zero
+  components: valid JSON, valid schema, correct filename, and no answer to any question a reviewer
+  would ask it. It is now generated from `pnpm licenses list --prod` by
+  [`scripts/GenerateSbom.mjs`](./scripts/GenerateSbom.mjs) — the same source
+  [`ThirdPartyLicenses.md`](./ThirdPartyLicenses.md) is generated from, so the SBOM and the published
+  inventory cannot disagree. Also available locally as `pnpm sbom`.
+- The release now fails if the SBOM contains fewer than five components. The empty one passed every
+  check that existed and was caught only by opening the file.
+
+### Changed
+
+- `anchore/sbom-action` is no longer used, removing a third-party action from the release path.
+
 ## [0.1.0] — 2026-08-15
 
 First tagged release. The application itself — demo and live data modes, the portfolio dashboard, the
@@ -71,5 +92,6 @@ became something that can be handed to someone outside the team.
 - `gitleaks` across all refs reports no secrets in git history. Only `.env.example` was ever
   committed, and its service-token field is empty.
 
-[unreleased]: https://github.com/decionis/cdi/compare/v0.1.0...HEAD
+[unreleased]: https://github.com/decionis/cdi/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/decionis/cdi/releases/tag/v0.1.1
 [0.1.0]: https://github.com/decionis/cdi/releases/tag/v0.1.0
