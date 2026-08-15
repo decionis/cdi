@@ -58,3 +58,20 @@ jobs:
       - name: Verify
         # format -> lint -> typecheck -> test -> build
         run: pnpm verify
+
+      - name: Coverage
+        # Runs on one Node version only. Coverage is a property of the tests,
+        # not of the runtime, so measuring it twice costs time and reports the
+        # same number. Thresholds live in vitest.config.ts and fail the step.
+        if: matrix.node == '22'
+        run: pnpm test:coverage
+
+      - name: Upload coverage report
+        # Kept so a reviewer can see which lines are uncovered rather than only
+        # the summary percentage. lcov is the interchange format most tools read.
+        if: matrix.node == '22' && always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: coverage
+          path: coverage/
+          retention-days: 14

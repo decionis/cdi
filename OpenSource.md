@@ -53,9 +53,16 @@ Two open questions from the previous plan are now answered:
 - **`@decionis-ai/sdk` was publicly installable** from the default npm registry and MIT-licensed, so
   it was never a barrier to outside installs — just dead weight, since no source file imported it.
   Removed in W5.
-- **Its repository field points to `github.com/orepos/Decionis`**, not a `decionis` org. A reviewer
-  tracing provenance from `decionis/cdi` → `@decionis-ai/sdk` → an unrelated-looking GitHub org will
-  raise it. Align the org or be ready to explain it.
+- **The provenance question is resolved by a differently-scoped package.** `@decionis-ai/sdk`, the one
+  removed in W5, still declares `github.com/orepos/Decionis` — an unrelated-looking org a reviewer
+  would have queried. The published SDK is now **`@decionis/sdk`**, which declares
+  `github.com/decionis/Decionis`, so the trail from `decionis/cdi` to the SDK to its source stays
+  inside one org.
+
+  Two things to know before anyone adds it as a dependency. It is published **`UNLICENSED`**, npm's
+  all-rights-reserved marker, so `pnpm licenses:check` will fail the build — correctly. And an
+  Apache-2.0 repository depending on an all-rights-reserved package is a question a buyer will ask,
+  so if CDI is ever meant to consume the SDK, the SDK needs a license first.
 
 ### The vulnerability finding — resolved
 
