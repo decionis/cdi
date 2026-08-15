@@ -90,6 +90,27 @@ Commit the lockfile with your change. CI installs with `--frozen-lockfile` and w
 - Full rules in [coding.rule.md](./coding.rule.md); layer boundaries in
   [Architecture.md](./Architecture.md).
 
+### The pre-commit hook
+
+`pnpm install` points `core.hooksPath` at [`.githooks/`](.githooks), so a pre-commit hook checks two
+things on the files you staged:
+
+- **Formatting** — Prettier, including Markdown.
+- **Markdown links** — every relative link resolves to a file that exists.
+
+It **checks rather than fixes**. Reformatting mid-commit would rewrite content you did not stage, and
+with a partially staged file it would commit a version nobody reviewed. When it fails it tells you
+the command to run:
+
+```bash
+pnpm format:fix
+pnpm links:check
+```
+
+It is a native git hook rather than husky — no extra dependency and no postinstall script, just a
+shell script you can read. `git commit --no-verify` bypasses it; both checks also run in CI, which
+you cannot bypass. The hook exists to catch these in two seconds rather than two minutes.
+
 ### Screenshots
 
 If your change alters what the interface looks like, regenerate the README images in the same pull

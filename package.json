@@ -32,7 +32,9 @@
     "licenses:list": "pnpm licenses list --prod",
     "verify": "pnpm format && pnpm lint && pnpm typecheck && pnpm test && pnpm build",
     "screenshots": "node scripts/CaptureScreenshots.mjs",
-    "sbom": "node scripts/GenerateSbom.mjs decionis-cdi.cdx.json"
+    "sbom": "node scripts/GenerateSbom.mjs decionis-cdi.cdx.json",
+    "prepare": "git config core.hooksPath .githooks || true",
+    "links:check": "node scripts/CheckMarkdownLinks.mjs"
   },
   "dependencies": {
     "lucide-react": "^1.31.0",
