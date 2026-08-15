@@ -39,7 +39,7 @@ export class CdiSessionResolver {
   private createDemoSession(): CdiSession {
     return {
       subject: "demo-operator",
-      displayName: "Amina Okafor",
+      displayName: "Erin Example",
       orgId: "demo-fintech",
       roles: ["ADMIN", "APPROVER"],
       accessToken: null,

@@ -37,7 +37,7 @@ describe("middleware — demo mode", () => {
   it("lets every request through when the data mode is demo", () => {
     vi.stubEnv("CDI_DATA_MODE", "demo");
 
-    for (const path of ["/", "/accounts/acct-atlas", "/api/cdi/portfolio"]) {
+    for (const path of ["/", "/accounts/acct-kilo", "/api/cdi/portfolio"]) {
       expect(isPassThrough(middleware(request(path)))).toBe(true);
     }
   });
@@ -70,12 +70,12 @@ describe("middleware — live mode", () => {
   it("redirects an unauthenticated page request to sign-in", () => {
     goLive();
 
-    const response = middleware(request("/accounts/acct-atlas"));
+    const response = middleware(request("/accounts/acct-kilo"));
 
     expect(response.status).toBe(307);
     const location = new URL(response.headers.get("location") ?? "");
     expect(location.pathname).toBe("/sign-in");
-    expect(location.searchParams.get("returnTo")).toBe("/accounts/acct-atlas");
+    expect(location.searchParams.get("returnTo")).toBe("/accounts/acct-kilo");
   });
 
   it("answers an unauthenticated API request with 401 rather than a redirect", async () => {
@@ -145,7 +145,7 @@ describe("middleware — live mode", () => {
     for (const path of [
       "/api/cdi/portfolio",
       "/api/cdi/opportunities",
-      "/api/cdi/accounts/acct-atlas",
+      "/api/cdi/accounts/acct-kilo",
       "/api/cdi/opportunities/opp-1/review",
     ]) {
       expect(middleware(request(path)).status).toBe(401);
@@ -231,7 +231,7 @@ describe("middleware — Content-Security-Policy", () => {
   it("is applied to a sign-in redirect", () => {
     vi.stubEnv("CDI_DATA_MODE", "live");
 
-    const response = middleware(request("/accounts/acct-atlas"));
+    const response = middleware(request("/accounts/acct-kilo"));
 
     expect(response.status).toBe(307);
     expect(policyFor(response)).toContain("default-src 'self'");

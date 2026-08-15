@@ -14,16 +14,22 @@ describe("DemoCdiRepository", () => {
 
   it("returns account evidence without exposing connector credentials", async () => {
     const repository = new DemoCdiRepository();
-    const account = await repository.getAccount("acct-atlas");
+    const account = await repository.getAccount("acct-kilo");
 
-    expect(account?.evidence).toHaveLength(3);
-    expect(account?.connectors[0]).not.toHaveProperty("credentials");
+    expect(account?.evidence.length).toBeGreaterThan(0);
+    // Asserted across every connector rather than the first: a credential
+    // leaking onto the second one is the same defect and was not covered.
+    for (const connector of account?.connectors ?? []) {
+      expect(connector).not.toHaveProperty("credentials");
+      expect(connector).not.toHaveProperty("token");
+      expect(connector).not.toHaveProperty("apiKey");
+    }
     expect(account?.policyEnvelope.automaticChangesEnabled).toBe(false);
   });
 
   it("records review state without executing a downstream action", async () => {
     const repository = new DemoCdiRepository();
-    const result = await repository.reviewOpportunity("opp-atlas-limit", {
+    const result = await repository.reviewOpportunity("opp-kilo-limit", {
       decision: "APPROVE",
     });
 
