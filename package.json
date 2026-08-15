@@ -1,6 +1,6 @@
 {
   "name": "@decionis/cdi",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Governed customer expansion for regulated fintech operations. The operational control center for Adaptive Customer Decision Intelligence.",
   "license": "Apache-2.0",
