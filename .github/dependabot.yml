@@ -1,23 +1,26 @@
 version: 2
 
-# Dependabot was running on defaults with no configuration, which produced four
-# consecutive failed security-update jobs. This gives it the shape W2.3 of
-# OpenSource.md asked for: grouped, weekly, and quiet enough that a Dependabot
-# pull request is worth reading.
+# Tuned after two individually-green Dependabot pull requests (jest-dom 6 -> 7
+# and vitest 3 -> 4) merged into a broken lockfile and took master red. The
+# volume was a symptom; the cause was major upgrades arriving unbidden and
+# landing concurrently.
 #
-# Note what this file does NOT control: security updates. Those are driven by
-# advisories rather than by schedule, and ignore `groups` and `schedule`. The
-# way to stop a security update failing is to not have the vulnerable version.
+# Note what this file does NOT control: security updates. Those are advisory-
+# driven and ignore `schedule` and `groups`. Nothing here delays a fix for a
+# known vulnerability — the `ignore` rules below are scoped to
+# `version-update:` precisely so they cannot.
 
 updates:
   - package-ecosystem: npm
     directory: "/"
     schedule:
+      # Weekly for production. This tree is small and the blast radius of a
+      # stale runtime dependency is larger than the cost of reviewing it.
       interval: weekly
       day: monday
       time: "05:00"
       timezone: Etc/UTC
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 3
     versioning-strategy: increase
     labels:
       - dependencies
@@ -25,19 +28,26 @@ updates:
       prefix: chore
       include: scope
 
+    ignore:
+      # Major upgrades of build tooling are taken deliberately, not on a
+      # schedule. vitest 3 -> 4 was fine on its own; arriving unannounced
+      # alongside another major is what broke the lockfile. Run
+      # `pnpm outdated` when there is appetite for one, and bump it in a
+      # pull request whose only job is that upgrade.
+      #
+      # Scoped to `version-update:` — a major that fixes a security advisory
+      # still arrives immediately.
+      - dependency-name: "*"
+        dependency-type: development
+        update-types:
+          - "version-update:semver-major"
+
     groups:
       # Grouped by dependency type and update size rather than by package name.
+      # Matching on dependency-type catches everything, including packages added
+      # later that nobody remembers to add to a pattern list.
       #
-      # The previous pattern-based groups (next, react, linting, testing, types)
-      # only covered packages someone had thought to list, so lucide-react, zod
-      # and typescript each still opened their own pull request — five or six a
-      # week for a repository this size. Matching on dependency-type catches
-      # everything, including packages added later that nobody remembers to add
-      # to a pattern list.
-      #
-      # Majors are deliberately left out of both groups. They land as individual
-      # pull requests because they are the ones that actually need reading — the
-      # vitest 2 -> 3 bump earlier in this repository's history is the example.
+      # Production majors stay individual: they are the ones that need reading.
       production:
         dependency-type: production
         update-types:
@@ -52,10 +62,12 @@ updates:
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
-      interval: weekly
-      day: monday
+      # Monthly. Actions are SHA-pinned, so an unapplied update is a stale pin
+      # rather than an exposure, and the weekly cadence was pure noise.
+      interval: monthly
       time: "05:00"
       timezone: Etc/UTC
+    open-pull-requests-limit: 2
     labels:
       - dependencies
     commit-message:
