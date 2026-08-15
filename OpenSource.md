@@ -36,25 +36,25 @@ depend on this. But it is **credibility, not the pitch**. The pitch is the probl
 
 Measured against the current tree this session, not estimated.
 
-| Finding                                                                                       | Severity for a buyer   | Status                 |
-| --------------------------------------------------------------------------------------------- | ---------------------- | ---------------------- |
-| 15 known vulnerabilities in the production tree — 8 high, 7 moderate                          | Blocker                | ✅ Fixed               |
-| `package.json` has no `license`, `repository`, `description`, or `author` field               | Blocker                | ✅ Fixed               |
-| No `LICENSE` file, so the code is all-rights-reserved                                         | Blocker                | ✅ Fixed               |
-| LGPL-3.0-or-later present in the production tree (`@img/sharp-libvips-*`)                     | High — needs an answer | ✅ Documented          |
-| No CI or audit enforcement                                                                    | High                   | ✅ Fixed               |
-| No signed or attested releases, no SBOM                                                       | High                   | ✅ Fixed               |
-| Branch protection — PR + code-owner review enforced                                           | High                   | ✅ Fixed               |
-| Required status checks absent, so a PR could merge with CI red                                | High                   | ✅ Fixed               |
-| Dependabot security updates disabled; `dependencies` label missing                            | High                   | ✅ Fixed               |
-| Push protection disabled                                                                      | High                   | ✅ Fixed               |
-| Private vulnerability reporting unavailable — public repositories only                        | Medium                 | Blocked on public flip |
-| CODEOWNERS named GitHub teams that do not exist, so no PR could be merged                     | Blocker                | ✅ Fixed               |
-| Sole code owner could not approve their own PR — repository deadlocked                        | Blocker                | ✅ Fixed               |
-| 10 advisories in the dev tree the production-only audit did not cover                         | High                   | ✅ Fixed               |
-| Auth and gateway paths (`middleware.ts`, `StewardSessionResolver`, `JsonHttpClient`) untested | High                   | ✅ Fixed               |
-| No `SECURITY.md`, no disclosure policy, no response-time commitment                           | High                   | ✅ Fixed               |
-| SDK dependency `@decionis-ai/sdk` declared but imported nowhere                               | Medium                 | ✅ Fixed               |
+| Finding                                                                                       | Severity for an adopter | Status                 |
+| --------------------------------------------------------------------------------------------- | ----------------------- | ---------------------- |
+| 15 known vulnerabilities in the production tree — 8 high, 7 moderate                          | Blocker                 | ✅ Fixed               |
+| `package.json` has no `license`, `repository`, `description`, or `author` field               | Blocker                 | ✅ Fixed               |
+| No `LICENSE` file, so the code is all-rights-reserved                                         | Blocker                 | ✅ Fixed               |
+| LGPL-3.0-or-later present in the production tree (`@img/sharp-libvips-*`)                     | High — needs an answer  | ✅ Documented          |
+| No CI or audit enforcement                                                                    | High                    | ✅ Fixed               |
+| No signed or attested releases, no SBOM                                                       | High                    | ✅ Fixed               |
+| Branch protection — PR + code-owner review enforced                                           | High                    | ✅ Fixed               |
+| Required status checks absent, so a PR could merge with CI red                                | High                    | ✅ Fixed               |
+| Dependabot security updates disabled; `dependencies` label missing                            | High                    | ✅ Fixed               |
+| Push protection disabled                                                                      | High                    | ✅ Fixed               |
+| Private vulnerability reporting unavailable — public repositories only                        | Medium                  | Blocked on public flip |
+| CODEOWNERS named GitHub teams that do not exist, so no PR could be merged                     | Blocker                 | ✅ Fixed               |
+| Sole code owner could not approve their own PR — repository deadlocked                        | Blocker                 | ✅ Fixed               |
+| 10 advisories in the dev tree the production-only audit did not cover                         | High                    | ✅ Fixed               |
+| Auth and gateway paths (`middleware.ts`, `StewardSessionResolver`, `JsonHttpClient`) untested | High                    | ✅ Fixed               |
+| No `SECURITY.md`, no disclosure policy, no response-time commitment                           | High                    | ✅ Fixed               |
+| SDK dependency `@decionis-ai/sdk` declared but imported nowhere                               | Medium                  | ✅ Fixed               |
 
 Two open questions from the previous plan are now answered:
 
@@ -69,7 +69,8 @@ Two open questions from the previous plan are now answered:
 
   Two things to know before anyone adds it as a dependency. It is published **`UNLICENSED`**, npm's
   all-rights-reserved marker, so `pnpm licenses:check` will fail the build — correctly. And an
-  Apache-2.0 repository depending on an all-rights-reserved package is a question a buyer will ask,
+  Apache-2.0 repository depending on an all-rights-reserved package is a question any adopter will
+  hit the moment their own licence scan runs,
   so if Steward is ever meant to consume the SDK, the SDK needs a license first.
 
 ### The vulnerability finding — resolved
@@ -90,9 +91,9 @@ format, lint, typecheck, the full test suite, and a clean production build of al
 The overrides are forward pins, not freezes. Remove each one as the upstream `next` range resolves to
 a patched version on its own; the weekly audit job in W2.3 is what will tell you when.
 
-Retained here because it is the argument for W2.3: a buyer's reviewer runs `pnpm audit` in the first
-ten minutes of due diligence, and eight high-severity findings on a repository whose entire premise
-is governed, auditable decision-making is a credibility problem no documentation offsets. The tree is
+Retained here because it is the argument for W2.3: `pnpm audit` is among the first commands anyone
+runs after cloning, and eight high-severity findings on a repository whose entire premise is
+governed, auditable decision-making is a credibility problem no documentation offsets. The tree is
 clean today; **only a blocking CI job keeps it clean.**
 
 ## Workstreams
@@ -115,8 +116,8 @@ Copyright holder: **Decionis, Inc.**, a Delaware corporation. Landed:
    `"private": true` is retained; the README now explains that it prevents accidental npm publication
    and does not restrict use under Apache-2.0.
 4. ✅ **`ThirdPartyLicenses.md`** — all 29 production packages inventoried by license: 15 MIT,
-   7 Apache-2.0, 3 ISC, 1 BSD-3-Clause, 1 0BSD, 1 CC-BY-4.0, 1 LGPL-3.0-or-later. Handing a buyer
-   this file unprompted removes a full round-trip from their review. It notes that `@img/sharp-*` and
+   7 Apache-2.0, 3 ISC, 1 BSD-3-Clause, 1 0BSD, 1 CC-BY-4.0, 1 LGPL-3.0-or-later. Handing an adopter
+   this file unprompted removes a full round-trip from the review they will face internally. It notes that `@img/sharp-*` and
    `@next/swc-*` are platform-conditional, so a deployment-accurate SBOM must be regenerated on the
    target platform — pre-empting a "your SBOM doesn't match your container" objection.
    **Regenerate this in CI** so it cannot drift from the lockfile (carried into W2).
@@ -134,17 +135,18 @@ Remaining, and deliberately deferred:
    App to enforce it still needs repo admin.**
 7. **Per-file copyright headers — recommend skipping.** Standard npm-ecosystem practice is
    `LICENSE` + `NOTICE` + the `package.json` field, which is what SCA tooling reads. Add headers only
-   if a named buyer's policy demands them; if so, enforce with an ESLint rule rather than by hand.
+   if an adopter's policy demands them; if so, enforce with an ESLint rule rather than by hand.
 
 ### W2 — Vulnerability and supply-chain posture
 
-This is where an enterprise buyer's opinion is actually formed.
+This is where an engineer decides whether Steward is safe to build on. It is also the first thing
+any automated check reports, before a human reads a line of the source.
 
 1. ✅ **Clear the 15 advisories — done.** `next` bumped to `^15.5.23`, `pnpm.overrides` added for
    `postcss`, `nanoid`, and `sharp`, lockfile refreshed. `pnpm audit --prod` is clean and
    `pnpm verify` passes including the production build. Details in the findings section above.
-   **This state is not self-sustaining** — without item 3 below, the next advisory is discovered by a
-   buyer rather than by us.
+   **This state is not self-sustaining** — without item 3 below, the next advisory is discovered by
+   whoever cloned this, rather than by us.
 2. ✅ **CI on every PR and push — done.** `.github/workflows/verify.yml` runs `pnpm verify` on Node 20
    and 22 with a pnpm cache and `--frozen-lockfile`, so a dependency change cannot land without its
    lockfile. Node 20 is the floor declared in `engines`; the matrix tests what we promise.
@@ -278,8 +280,9 @@ This is where an enterprise buyer's opinion is actually formed.
    `script-src`. Verified against a production build — all 21 script tags nonced, React hydrating, a
    review `POST` succeeding, no console violations.
 4. ✅ **Data-handling statement** — no telemetry, no analytics, no third-party scripts, no customer
-   data at rest, no cookies set by this application. For a fintech buyer this is a fast "no" to
-   several questionnaire rows, and it is true by construction: this tier has no database.
+   data at rest, no cookies set by this application. For anyone deploying this inside an enterprise
+   that is a fast "no" to several of their own review questions, and it is true by construction:
+   this tier has no database.
 
 Verification done while writing it, rather than asserted: the app sets no cookies, the server tier
 makes no outbound request to any host but `DECIONIS_API_BASE_URL`, and the session-carrying component
@@ -320,7 +323,7 @@ token in every page render **without failing typecheck or any behavioural test**
 now asserted structurally, and mutation-tested: marking `AppShell` as a client component fails 2 of
 the 4 guards.
 
-Three properties are worth pointing a reviewer at directly, because they are the ones a questionnaire
+Three properties are worth pointing a reader at directly, because they are the ones a review
 asks about and they are now executable rather than asserted:
 
 - **The credential never reaches the URL.** `JsonHttpClient` asserts the token appears in the
@@ -438,8 +441,8 @@ Still open:
   `workflow_dispatch` with `dry_run: true` first; it uploads the tarball and SBOM as artifacts
   without publishing anything.
 - **Announce only after everything in [PublicLaunch.md](./PublicLaunch.md) is done.** The
-  repository gets one first impression, and the buyers who look earliest are the ones who matter
-  most.
+  repository gets one first impression, and the engineers who look earliest are the ones most likely
+  to build on it.
 
 The flip itself is a single coordinated change with a strict ordering — several things cannot be done
 until the repository is public, and several must be true before it is, because the flip exposes every
@@ -459,14 +462,19 @@ commit and cannot meaningfully be undone. That sequence lives in
 
 Stages 1 and 2 can run concurrently — one is engineering, the other is legal turnaround. **Do not
 flip the repository to public before stage 3 completes.** A public repository with failing CI, or
-none, is the impression that sticks, and for this buyer it is the impression that costs the deal.
+none, is the impression that sticks — and an engineer who bounces off that never gets as far as
+reading the boundary this repository exists to demonstrate.
 
 ## The evidence pack
 
-The deliverable that makes this plan pay for itself. Once W1–W3 land, a Decionis salesperson facing a
-security questionnaire can send one set of links instead of scheduling a call:
+Not a sales asset, though it reads like one. Its actual job is to unblock **the person adopting
+Steward**, because an engineer who wants to run this inside a bank, a utility, or an insurer will be
+asked the same set of questions by their own security team — and if they cannot answer them quickly,
+the evaluation dies there regardless of what the code does.
 
-| Buyer asks                       | Send                                                            |
+So the pack is written for them to forward, not for us to send:
+
+| They will be asked               | Point at                                                        |
 | -------------------------------- | --------------------------------------------------------------- |
 | Licensing and patent terms       | `LICENSE`, `NOTICE`, `ThirdPartyLicenses.md`                    |
 | Dependency and CVE posture       | SBOM, the passing audit job, OpenSSF Scorecard                  |
@@ -474,8 +482,12 @@ security questionnaire can send one set of links instead of scheduling a call:
 | Architecture and data handling   | `Architecture.md`, the threat model, the no-telemetry statement |
 | "Prove the boundary is real"     | `middleware.ts`, `OpportunityService`, and their tests          |
 
-Most vendors answer that last row with a diagram. Answering it with source code a buyer can read and
-a test suite they can run is the reason to do any of this.
+Most projects answer that last row with a diagram. Answering it with source anyone can read and a
+test suite they can run is the reason to do any of this — and it is what makes the boundary a
+verifiable property rather than a claim in a README.
+
+It happens to also answer a vendor questionnaire about Decionis. That is a by-product, not the
+design goal, and this plan spent a long time with those two the wrong way round.
 
 ## Inputs needed
 
@@ -485,4 +497,4 @@ a test suite they can run is the reason to do any of this.
 | Security contact address    | `SECURITY.md`, and it must be monitored                                                                                        |
 | Disclosure response target  | What we will actually honour, not what sounds good                                                                             |
 | Demo hosting owner          | Who owns uptime for the public demo                                                                                            |
-| Named buyer LGPL policy     | Only if one prohibits LGPL outright — then W1.5 becomes engineering work                                                       |
+| Known adopter LGPL policy   | Only if one prohibits LGPL outright — then W1.5 becomes engineering work                                                       |
