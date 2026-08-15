@@ -97,20 +97,45 @@ jobs:
       - name: Generate CycloneDX SBOM
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
         with:
-          # Scan the assembled bundle, NOT the repository root.
+          # Scan the release TARBALL, not the repository and not the bundle
+          # directory. Both of the obvious targets are wrong, in opposite ways:
           #
-          # Scanning "." produced an SBOM of 566 components — the whole workspace
-          # including ESLint, Vitest and every other dev dependency — attached to
-          # an artifact that ships around 25. That is precisely the "your SBOM
-          # does not match your container" objection this file exists to
-          # pre-empt, and it was found by the first dry run rather than by a
-          # customer. The bundle's node_modules is what actually runs.
-          path: ${{ steps.bundle.outputs.bundle }}
+          #   path: "."          -> 566 components. The whole workspace, ESLint
+          #                         and Vitest included, attached to an artifact
+          #                         shipping a fraction of that. Exactly the
+          #                         "your SBOM does not match your container"
+          #                         objection this file exists to pre-empt.
+          #
+          #   path: dist/<name>  -> 0 components, shipped in v0.1.0. pnpm puts
+          #                         the real packages under node_modules/.pnpm
+          #                         and leaves symlinks at the top level, and a
+          #                         syft directory scan skips dot-directories —
+          #                         so it walked the tree and found nothing.
+          #
+          # Scanning the archive takes a different code path that walks every
+          # entry, including .pnpm, and has the additional merit of describing
+          # the exact bytes the attestation is signed over.
+          file: ${{ steps.bundle.outputs.tarball }}
           format: cyclonedx-json
           output-file: "decionis-cdi-${{ steps.bundle.outputs.version }}.cdx.json"
           # This action uploads its own workflow artifact by default, which
           # duplicated the explicit upload below.
           upload-artifact: false
+
+      - name: Assert the SBOM is not empty
+        # v0.1.0 shipped a 419-byte SBOM with zero components and nothing caught
+        # it until someone opened the file. An SBOM that lists nothing passes
+        # every schema check and answers no question a reviewer has.
+        env:
+          SBOM: "decionis-cdi-${{ steps.bundle.outputs.version }}.cdx.json"
+        run: |
+          set -euo pipefail
+          count=$(node -e "process.stdout.write(String((JSON.parse(require('fs').readFileSync(process.env.SBOM,'utf8')).components||[]).length))")
+          echo "SBOM components: ${count}"
+          if [ "${count}" -lt 5 ]; then
+            echo "::error title=SBOM is effectively empty::Only ${count} components. The scan target is wrong."
+            exit 1
+          fi
 
       - name: Attest build provenance
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
