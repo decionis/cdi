@@ -68,7 +68,7 @@ export function AppShell({ session, children }: AppShellProps) {
             <span className={styles.orgLabel}>Workspace</span>
             <strong>
               {session.mode === "DEMO"
-                ? "Northstar Payments · Design partner"
+                ? "Zulu Financial · Demo workspace"
                 : session.orgId}
             </strong>
           </div>

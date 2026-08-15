@@ -10,11 +10,11 @@ describe("AccountPortfolioTable", () => {
       <AccountPortfolioTable accounts={DemoCdiData.portfolio().accounts} />,
     );
 
-    expect(screen.getByText("AtlasPay Europe")).toBeInTheDocument();
+    expect(screen.getByText("Kilo Payments")).toBeInTheDocument();
     expect(screen.getByText("EXPANSION READY")).toBeInTheDocument();
-    expect(screen.getByLabelText("Open AtlasPay Europe")).toHaveAttribute(
+    expect(screen.getByLabelText("Open Kilo Payments")).toHaveAttribute(
       "href",
-      "/accounts/acct-atlas",
+      "/accounts/acct-kilo",
     );
   });
 });
