@@ -3,7 +3,7 @@
 Decionis CDI is licensed under [Apache-2.0](./LICENSE). It redistributes the third-party components
 below, each under its own license.
 
-**26 packages** in the production dependency tree, resolved from `pnpm-lock.yaml`.
+**25 packages** in the production dependency tree, resolved from `pnpm-lock.yaml`.
 
 Regenerate with:
 
@@ -19,7 +19,7 @@ deployed artifact, and are excluded deliberately.
 
 | License           | Packages | Notes                                |
 | ----------------- | -------- | ------------------------------------ |
-| MIT               | 15       | Permissive                           |
+| MIT               | 14       | Permissive                           |
 | Apache-2.0        | 4        | Permissive, patent grant             |
 | ISC               | 3        | Permissive                           |
 | BSD-3-Clause      | 1        | Permissive                           |
@@ -86,11 +86,10 @@ upstream `next` dependency range resolves to a patched version on its own.
 | `detect-libc`             | 2.1.2   |
 | `sharp`                   | 0.35.3  |
 
-### MIT (15)
+### MIT (14)
 
 | Package                  | Version  |
 | ------------------------ | -------- |
-| `@decionis-ai/sdk`       | 0.2.0    |
 | `@img/colour`            | 1.1.0    |
 | `@next/env`              | 15.5.23  |
 | `@next/swc-darwin-arm64` | 15.5.23  |
@@ -144,5 +143,8 @@ upstream `next` dependency range resolves to a patched version on its own.
 
 This inventory reflects package identity and licensing; it is not a substitute for a continuous
 vulnerability feed, and it is a point-in-time snapshot that must be regenerated alongside any
-lockfile change. Automated audit enforcement in CI is planned but **not yet in place** — see
-[OpenSource.md](./OpenSource.md).
+lockfile change.
+
+`pnpm audit --prod` and `pnpm licenses:check` run as blocking jobs on every pull request and again on
+a weekly schedule, so an advisory published against an unchanged tree is found here rather than by a
+customer. See [OpenSource.md](./OpenSource.md).

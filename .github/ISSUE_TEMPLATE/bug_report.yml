@@ -1,0 +1,78 @@
+name: Bug report
+description: Something in CDI behaves incorrectly
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to file this.
+
+        **If this is a security vulnerability, stop and read
+        [SECURITY.md](https://github.com/decionis/cdi/blob/master/SECURITY.md) instead.**
+        Do not describe an authentication bypass, a role-check bypass, or cross-organization
+        data exposure in a public issue.
+
+  - type: dropdown
+    id: data-mode
+    attributes:
+      label: Data mode
+      description: >
+        The first question on every report. Demo mode serves deterministic fixtures from
+        DemoCdiRepository; live mode talks to the Decionis platform. The same symptom usually
+        has completely different causes in each.
+      options:
+        - demo (CDI_DATA_MODE=demo, or the default outside production)
+        - live (CDI_DATA_MODE=live)
+        - Not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: what-happened
+    attributes:
+      label: What happened
+      description: What you observed, and what you expected instead.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Ideally against a fresh `pnpm install && pnpm dev` on demo data.
+      placeholder: |
+        1. pnpm dev
+        2. Open http://localhost:3000
+        3. ...
+    validations:
+      required: true
+
+  - type: input
+    id: versions
+    attributes:
+      label: Versions
+      description: Output of `node --version`, `pnpm --version`, and the commit you are on.
+      placeholder: "node v22.11.0, pnpm 9.15.3, commit abc1234"
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Relevant output
+      description: >
+        Server console output or browser console errors. This will be rendered as code, so no
+        backticks needed.
+      render: shell
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Before submitting
+      options:
+        - label: I have removed any access token, organization identifier, or customer data from the output above.
+          required: true
+        - label: This is not a security vulnerability (those go through SECURITY.md).
+          required: true

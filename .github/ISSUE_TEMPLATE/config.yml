@@ -1,0 +1,13 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/decionis/cdi/security/advisories/new
+    about: >
+      Report privately through GitHub Security Advisories. Never open a public issue for an
+      authentication bypass, role-check bypass, credential leak, or cross-organization data
+      exposure.
+  - name: Decionis platform issue
+    url: https://decionis.com/support
+    about: >
+      Policy evaluation, connector credentials, execution grants, Decision Dossiers, and the audit
+      ledger are owned by the Decionis platform, not by this repository.
