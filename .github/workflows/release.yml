@@ -95,37 +95,23 @@ jobs:
           echo "sha256=$(sha256sum "${name}.tar.gz" | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
 
       - name: Generate CycloneDX SBOM
-        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
-        with:
-          # Scan the release TARBALL, not the repository and not the bundle
-          # directory. Both of the obvious targets are wrong, in opposite ways:
-          #
-          #   path: "."          -> 566 components. The whole workspace, ESLint
-          #                         and Vitest included, attached to an artifact
-          #                         shipping a fraction of that. Exactly the
-          #                         "your SBOM does not match your container"
-          #                         objection this file exists to pre-empt.
-          #
-          #   path: dist/<name>  -> 0 components, shipped in v0.1.0. pnpm puts
-          #                         the real packages under node_modules/.pnpm
-          #                         and leaves symlinks at the top level, and a
-          #                         syft directory scan skips dot-directories —
-          #                         so it walked the tree and found nothing.
-          #
-          # Scanning the archive takes a different code path that walks every
-          # entry, including .pnpm, and has the additional merit of describing
-          # the exact bytes the attestation is signed over.
-          file: ${{ steps.bundle.outputs.tarball }}
-          format: cyclonedx-json
-          output-file: "decionis-cdi-${{ steps.bundle.outputs.version }}.cdx.json"
-          # This action uploads its own workflow artifact by default, which
-          # duplicated the explicit upload below.
-          upload-artifact: false
+        # Generated from `pnpm licenses list --prod` rather than scanned off the
+        # filesystem. Two attempts with Syft produced, in order, 566 components
+        # (the whole workspace, dev tooling included) and then zero — pnpm keeps
+        # the real packages under node_modules/.pnpm behind symlinks, and
+        # neither a directory scan nor an archive scan resolved them. v0.1.0
+        # shipped the empty one.
+        #
+        # pnpm already knows the production set, so the SBOM and the published
+        # ThirdPartyLicenses.md are generated from the same source and cannot
+        # disagree. It also removes a third-party action from the release path.
+        run: node scripts/GenerateSbom.mjs "decionis-cdi-${{ steps.bundle.outputs.version }}.cdx.json" "${{ steps.bundle.outputs.version }}"
 
-      - name: Assert the SBOM is not empty
-        # v0.1.0 shipped a 419-byte SBOM with zero components and nothing caught
-        # it until someone opened the file. An SBOM that lists nothing passes
-        # every schema check and answers no question a reviewer has.
+      - name: Assert the SBOM describes something
+        # The generator refuses to write an empty document, but this asserts the
+        # artifact on disk independently. v0.1.0 shipped a 419-byte SBOM with
+        # zero components: it passed every schema check and answered nothing,
+        # and nothing caught it until someone opened the file.
         env:
           SBOM: "decionis-cdi-${{ steps.bundle.outputs.version }}.cdx.json"
         run: |
@@ -133,7 +119,7 @@ jobs:
           count=$(node -e "process.stdout.write(String((JSON.parse(require('fs').readFileSync(process.env.SBOM,'utf8')).components||[]).length))")
           echo "SBOM components: ${count}"
           if [ "${count}" -lt 5 ]; then
-            echo "::error title=SBOM is effectively empty::Only ${count} components. The scan target is wrong."
+            echo "::error title=SBOM is effectively empty::Only ${count} components."
             exit 1
           fi
 
