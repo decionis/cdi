@@ -144,9 +144,12 @@ section should stop saying the code "is not yet open source".
       was found to contain zero components. Both attestations verify from a clean directory. Before
       tagging anything further, confirm master is green first — `v0.1.0` was tagged against a broken
       lockfile and produced a failed release.
-- [ ] **Stand up the public demo** on `CDI_DATA_MODE=demo` using the [Dockerfile](./Dockerfile).
-      `next.config.ts` sets `X-Robots-Tag: noindex, nofollow, noarchive`; drop that header on the demo
-      host only if discoverability matters.
+- [x] **Public demo live at [cdi-demo.vercel.app](https://cdi-demo.vercel.app).** Deployed with
+      `CDI_DATA_MODE=demo`; verified in production rather than assumed — health probe 200, portfolio
+      serving `DEMO` with 4 accounts, all seven security headers present with a fresh CSP nonce per
+      request, React hydrated with 18/18 scripts nonced, and a review `POST` returning 200 under the
+      policy. `X-Robots-Tag: noindex, nofollow, noarchive` is left in place, so the demo will not be
+      indexed; drop it in `next.config.ts` only if the demo should be discoverable in search.
 - [ ] **Announce.** Not before the above. The repository gets one first impression, and the buyers who
       look earliest are the ones who matter most.
 

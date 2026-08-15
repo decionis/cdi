@@ -11,6 +11,9 @@
 
 **Governed customer expansion for regulated fintech operations.**
 
+**[Try the live demo →](https://cdi-demo.vercel.app)** — the full operator workflow on deterministic
+fixtures. No account, no credentials, nothing to install.
+
 CDI is the operational control center for Adaptive Customer Decision Intelligence. It gives customer
 operations, risk, and revenue teams a single reviewable surface over their account portfolio: it
 correlates account evidence, surfaces friction and expansion opportunities, and forwards every
