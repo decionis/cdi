@@ -3,7 +3,7 @@
 Decionis CDI is licensed under [Apache-2.0](./LICENSE). It redistributes the third-party components
 below, each under its own license.
 
-**25 packages** in the production dependency tree, resolved from `pnpm-lock.yaml`.
+**29 packages** in the production dependency tree, resolved from `pnpm-lock.yaml`.
 
 Regenerate with:
 
@@ -15,12 +15,16 @@ This inventory covers **production dependencies only**. Development dependencies
 TypeScript, Vitest, and their transitive tree) are build-time tooling, are not redistributed in the
 deployed artifact, and are excluded deliberately.
 
+One exception is listed rather than hidden: four Playwright-related packages appear here because
+Next declares one of them as an optional peer dependency, even though none of them ship. See
+"Reported as production, but not shipped" below.
+
 ## Summary
 
 | License           | Packages | Notes                                |
 | ----------------- | -------- | ------------------------------------ |
-| MIT               | 14       | Permissive                           |
-| Apache-2.0        | 4        | Permissive, patent grant             |
+| MIT               | 15       | Permissive                           |
+| Apache-2.0        | 7        | Permissive, patent grant             |
 | ISC               | 3        | Permissive                           |
 | BSD-3-Clause      | 1        | Permissive                           |
 | 0BSD              | 1        | Permissive, no attribution required  |
@@ -29,6 +33,30 @@ deployed artifact, and are excluded deliberately.
 
 No copyleft license applies to any Decionis CDI source file, and no dependency imposes a reciprocal
 obligation on this codebase.
+
+### Reported as production, but not shipped
+
+Four packages — `@playwright/test`, `playwright`, `playwright-core`, and `fsevents` — appear in this
+inventory without being part of the deployed application. The mechanism is worth stating plainly,
+because a browser automation framework in a payments application's production inventory is exactly
+the kind of entry that stops a review.
+
+`next` declares `@playwright/test` as an **optional peer dependency**. Playwright is a development
+dependency here, used only by `scripts/CaptureScreenshots.mjs` to regenerate the README screenshots.
+Once it is present, pnpm satisfies Next's optional peer from it, and `pnpm licenses list --prod`
+therefore reports the Playwright packages as production. Declaring `playwright` instead of
+`@playwright/test` does not avoid this: pnpm auto-installs the peer either way.
+
+**They are not in the deployable artifact.** Next traces only what the application imports, and
+nothing imports Playwright. Verify it directly:
+
+```bash
+pnpm build
+ls .next/standalone/node_modules | grep -c playwright   # 0
+```
+
+The SBOM attached to each release is generated from the assembled bundle rather than from the
+workspace, so it does not contain them either.
 
 ### Platform-conditional packages
 
@@ -77,33 +105,37 @@ upstream `next` dependency range resolves to a patched version on its own.
 
 ## Inventory
 
-### Apache-2.0 (4)
+### Apache-2.0 (7)
 
 | Package                   | Version |
 | ------------------------- | ------- |
 | `@img/sharp-darwin-arm64` | 0.35.3  |
+| `@playwright/test`        | 1.62.1  |
 | `@swc/helpers`            | 0.5.15  |
 | `detect-libc`             | 2.1.2   |
+| `playwright`              | 1.62.1  |
+| `playwright-core`         | 1.62.1  |
 | `sharp`                   | 0.35.3  |
 
-### MIT (14)
+### MIT (15)
 
-| Package                  | Version  |
-| ------------------------ | -------- |
-| `@img/colour`            | 1.1.0    |
-| `@next/env`              | 15.5.23  |
-| `@next/swc-darwin-arm64` | 15.5.23  |
-| `@types/node`            | 20.19.43 |
-| `client-only`            | 0.0.1    |
-| `nanoid`                 | 3.3.18   |
-| `next`                   | 15.5.23  |
-| `postcss`                | 8.5.26   |
-| `react`                  | 19.2.7   |
-| `react-dom`              | 19.2.7   |
-| `scheduler`              | 0.27.0   |
-| `styled-jsx`             | 5.1.6    |
-| `undici-types`           | 6.21.0   |
-| `zod`                    | 3.25.76  |
+| Package                  | Version |
+| ------------------------ | ------- |
+| `@img/colour`            | 1.1.0   |
+| `@next/env`              | 15.5.23 |
+| `@next/swc-darwin-arm64` | 15.5.23 |
+| `@types/node`            | 26.2.0  |
+| `client-only`            | 0.0.1   |
+| `fsevents`               | 2.3.2   |
+| `nanoid`                 | 3.3.18  |
+| `next`                   | 15.5.23 |
+| `postcss`                | 8.5.26  |
+| `react`                  | 19.2.8  |
+| `react-dom`              | 19.2.8  |
+| `scheduler`              | 0.27.0  |
+| `styled-jsx`             | 5.1.6   |
+| `undici-types`           | 8.3.0   |
+| `zod`                    | 3.25.76 |
 
 ### ISC (3)
 

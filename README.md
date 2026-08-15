@@ -17,6 +17,8 @@ account is ready for a higher processing limit or is about to churn, but they ca
 without an auditable, policy-bound path. CDI is that path. Every action an operator takes here
 becomes a reviewed, attributable event upstream — never an ad-hoc change made in a spreadsheet.
 
+![The CDI control center: portfolio health, evidence coverage, and the governed action queue](docs/screenshot-control-center.png)
+
 ## What CDI is not
 
 This boundary is the most important thing to understand before contributing.
@@ -71,8 +73,18 @@ exercisable end to end:
 - **Account detail** (`/accounts/[id]`) — evidence signals, connection health, applicable policy, and
   the decision timeline.
 
+![The governed action queue: each recommendation carries its rationale, confidence, evidence coverage, and dossier reference](docs/screenshot-opportunity-queue.png)
+
+Every review control is captioned _"Records a review only; no downstream limit is changed."_ That is
+the trust boundary stated in the interface, not only in the documentation.
+
+![Account detail: processing envelope, the recommendation under review, correlated evidence, and connector health](docs/screenshot-account-detail.png)
+
 Reviews submitted in demo mode return a deterministic result. Nothing is persisted and no downstream
 action is executed.
+
+Screenshots are generated from a running instance with `pnpm screenshots`, so they can be refreshed
+rather than left to drift out of date.
 
 ## Configuration
 
@@ -194,6 +206,7 @@ pnpm format:fix       # Prettier write
 pnpm verify           # format + lint + typecheck + test + build
 pnpm licenses:check   # Fail on a dependency outside the approved license policy
 pnpm licenses:list    # Production dependency licenses
+pnpm screenshots      # Regenerate the README screenshots from a running instance
 ```
 
 `pnpm verify` is the gate — run it before opening a pull request.
