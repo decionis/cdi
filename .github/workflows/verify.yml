@@ -10,8 +10,10 @@ name: Verify
 on:
   push:
     branches: [master]
+  # Deliberately unfiltered: a pull request targeting any base branch must run
+  # this. Restricting to [master] means a stacked PR gets no CI at all, while
+  # branch protection still reports "all checks passed".
   pull_request:
-    branches: [master]
   workflow_dispatch:
 
 permissions:
