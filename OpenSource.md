@@ -154,7 +154,7 @@ This is where an enterprise buyer's opinion is actually formed.
 
    Both are clean as of this change.
 
-   The license gate ([CheckLicensePolicy.mjs](../scripts/CheckLicensePolicy.mjs)) asserts that every
+   The license gate ([CheckLicensePolicy.mjs](./scripts/CheckLicensePolicy.mjs)) asserts that every
    production dependency carries an approved license, with package-scoped exceptions for the two
    non-permissive entries already documented. It is a **policy gate rather than a diff check** by
    design: the generated inventory is platform-conditional, so a regenerate-and-compare check would
@@ -194,7 +194,7 @@ This is where an enterprise buyer's opinion is actually formed.
 5. ✅ **Every GitHub Action pinned by commit SHA**, not tag, with the version in a trailing comment.
    Tags are mutable; a governance product that resolves build steps by moving reference undercuts its
    own supply-chain story. Verified across all five workflows.
-6. ✅ **SBOM per release** — [`release.yml`](../.github/workflows/release.yml) generates a CycloneDX
+6. ✅ **SBOM per release** — [`release.yml`](./.github/workflows/release.yml) generates a CycloneDX
    JSON SBOM with Syft and attaches it to the GitHub release. Generated **on the Linux build platform
    from the actually-resolved tree**, which is the point: the checked-in inventory is macOS-generated
    and platform-conditional, so only a build-time SBOM matches what ships.
@@ -205,13 +205,13 @@ This is where an enterprise buyer's opinion is actually formed.
    Nothing is published to npm (`private: true`), so `--provenance` does not apply.
 8. ✅ **Repository security settings — done, bar one that is not possible yet:**
 
-   | Setting                             | State                                                    |
-   | ----------------------------------- | -------------------------------------------------------- |
-   | Secret scanning                     | ✅ enabled                                               |
-   | Push protection                     | ✅ enabled                                               |
-   | Dependabot security updates         | ✅ enabled                                               |
-   | CodeQL workflow                     | ✅ [`codeql.yml`](../.github/workflows/codeql.yml) added |
-   | **Private vulnerability reporting** | ⚠️ **not available on an internal repository**           |
+   | Setting                             | State                                                   |
+   | ----------------------------------- | ------------------------------------------------------- |
+   | Secret scanning                     | ✅ enabled                                              |
+   | Push protection                     | ✅ enabled                                              |
+   | Dependabot security updates         | ✅ enabled                                              |
+   | CodeQL workflow                     | ✅ [`codeql.yml`](./.github/workflows/codeql.yml) added |
+   | **Private vulnerability reporting** | ⚠️ **not available on an internal repository**          |
 
    Private vulnerability reporting cannot be enabled here. Both `GET` and `PUT` on
    `/repos/decionis/cdi/private-vulnerability-reporting` return 404 with an admin token, because
@@ -237,7 +237,7 @@ This is where an enterprise buyer's opinion is actually formed.
    check that silently finds nothing is worse than no check.
 
 9. ✅ **OpenSSF Scorecard workflow added**, and deliberately not yet publishing.
-   [`scorecard.yml`](../.github/workflows/scorecard.yml) runs weekly with `publish_results: false`,
+   [`scorecard.yml`](./.github/workflows/scorecard.yml) runs weekly with `publish_results: false`,
    because publishing requires a **public** repository and this one is `internal`. **There is no
    badge yet** — flip `publish_results` and add the badge in the same change that makes the
    repository public. Several checks (Branch-Protection, Signed-Releases) return limited results
@@ -245,14 +245,14 @@ This is where an enterprise buyer's opinion is actually formed.
 
 ### W3 — Security assurance artifacts ✅ Done (pending two sign-offs)
 
-1. ✅ **[`SECURITY.md`](../SECURITY.md)** — GitHub Security Advisories as the primary private channel,
+1. ✅ **[`SECURITY.md`](./SECURITY.md)** — GitHub Security Advisories as the primary private channel,
    with a secondary email. Named in GitHub's exact uppercase convention so the Security tab and the
    "Report a vulnerability" affordance pick it up; this is an ecosystem-required filename, the same
    exemption `page.tsx` and the workflow files get. Scope is explicit in three directions: what to
    report here, what routes to the platform contact instead, and **what we will not accept as a
    vulnerability** — chiefly the demo operator's privileges, which are intended behaviour, while
    demo mode being _reachable in production_ is in scope and serious.
-2. ✅ **[`ThreatModel.md`](../ThreatModel.md)** — seven threats (T1–T7), each with its mitigation, the
+2. ✅ **[`ThreatModel.md`](./ThreatModel.md)** — seven threats (T1–T7), each with its mitigation, the
    file that implements it, and the test that proves it. Assets, trust boundaries, and an
    **accepted-risk section**, because a threat model listing only mitigations is marketing.
 3. ✅ **Security headers documented, and the CSP gap since closed** — the seven headers in
@@ -332,13 +332,13 @@ UI, accessibility, docs, and deployment recipes — not core changes. All commun
 GitHub's uppercase convention so the platform surfaces them automatically, the same ecosystem-filename
 exemption `page.tsx` and the workflows get.
 
-- ✅ **[`CONTRIBUTING.md`](../CONTRIBUTING.md)** — setup, the demo-mode loop, `pnpm verify` as the
+- ✅ **[`CONTRIBUTING.md`](./CONTRIBUTING.md)** — setup, the demo-mode loop, `pnpm verify` as the
   gate, conventions, DCO sign-off, and the dependency-policy rules. It **opens** with "What CDI is
   not", listing the five changes that will be declined regardless of implementation quality. Anyone
   proposing that CDI evaluate policy locally learns it from a document rather than from a closed PR,
   and is directed to open an issue first because it is a design conversation.
-- ✅ **[`CODE_OF_CONDUCT.md`](../CODE_OF_CONDUCT.md)** — Contributor Covenant 2.1, verbatim.
-- ✅ **[`.github/CODEOWNERS`](../.github/CODEOWNERS)** — mandatory review on `middleware.ts`,
+- ✅ **[`CODE_OF_CONDUCT.md`](./CODE_OF_CONDUCT.md)** — Contributor Covenant 2.1, verbatim.
+- ✅ **[`.github/CODEOWNERS`](./.github/CODEOWNERS)** — mandatory review on `middleware.ts`,
   `infra/auth/`, `infra/api/`, `infra/config/`, `domain/`, and `application/`, plus the supply-chain
   surfaces (`package.json`, the lockfile, `scripts/`, the workflows, and CODEOWNERS itself) because a
   change there can disable every check protecting the rest. Each entry carries a comment explaining
@@ -381,14 +381,14 @@ Sign-off status:
 
 ### W6 — Launch — mostly done
 
-- ✅ **[`EvidencePack.md`](../EvidencePack.md)** — the artifact this whole plan exists to produce.
+- ✅ **[`EvidencePack.md`](./EvidencePack.md)** — the artifact this whole plan exists to produce.
   A questionnaire-row-to-artifact index, a table proving each boundary control with its file _and_
   its test, the commands a reviewer can run, and a section of fast answers that deliberately includes
   the weak ones: no CSP, no pen test, no SOC 2 in this tier. A reviewer finds gaps faster than we can
   hide them, and a vendor that states its own is easier to trust on the rest.
-- ✅ **[`CHANGELOG.md`](../CHANGELOG.md)** — Keep a Changelog format, semver from 0.1.0, stating
+- ✅ **[`CHANGELOG.md`](./CHANGELOG.md)** — Keep a Changelog format, semver from 0.1.0, stating
   plainly that `domain/` contracts may break before 1.0.
-- ✅ **Deployment recipe** — [`Dockerfile`](../Dockerfile) and `.dockerignore`, which is what makes a
+- ✅ **Deployment recipe** — [`Dockerfile`](./Dockerfile) and `.dockerignore`, which is what makes a
   public demo deployment cheap. Multi-stage, `--frozen-lockfile` so the image cannot resolve a
   different tree than CI audited, non-root, telemetry off, `HEALTHCHECK` on `/api/health`.
   **Verified end to end**: image builds, container reports `healthy`, `/api/cdi/portfolio` serves
@@ -408,7 +408,7 @@ EVIDENCE` badge is present, and every review control is captioned "Records a rev
 Still open:
 
 - ✅ **Screenshots — delivered.** Three captures in `docs/`: the control center, the governed action
-  queue, and account detail. Generated by [`scripts/CaptureScreenshots.mjs`](../scripts/CaptureScreenshots.mjs)
+  queue, and account detail. Generated by [`scripts/CaptureScreenshots.mjs`](./scripts/CaptureScreenshots.mjs)
   via `pnpm screenshots`, so they can be refreshed rather than left to drift — a stale screenshot is a
   README that quietly lies. The script **refuses to run unless the server reports `dataStatus: DEMO`**,
   because these images are published and live mode would put real customer names and processing limits
@@ -422,8 +422,14 @@ Still open:
 - **Prove the release pipeline before trusting a tag.** `release.yml` has never executed. Run it via
   `workflow_dispatch` with `dry_run: true` first; it uploads the tarball and SBOM as artifacts
   without publishing anything.
-- **Announce only after the repository-settings gaps in W2.4 and W2.8 are closed.** The repository
-  gets one first impression, and the buyers who look earliest are the ones who matter most.
+- **Announce only after everything in [PublicLaunch.md](./PublicLaunch.md) is done.** The
+  repository gets one first impression, and the buyers who look earliest are the ones who matter
+  most.
+
+The flip itself is a single coordinated change with a strict ordering — several things cannot be done
+until the repository is public, and several must be true before it is, because the flip exposes every
+commit and cannot meaningfully be undone. That sequence lives in
+[PublicLaunch.md](./PublicLaunch.md).
 
 ## Sequencing
 
