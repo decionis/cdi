@@ -1,0 +1,51 @@
+name: Feature request
+description: Propose a change or addition to CDI
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Before proposing, please read the "What CDI is not" section of
+        [CONTRIBUTING.md](https://github.com/decionis/cdi/blob/master/CONTRIBUTING.md).
+
+        CDI renders evidence and forwards operator reviews. It does not own policy evaluation,
+        credentials, execution, or the audit record — those stay authoritative in the Decionis
+        platform. Proposals that move decision authority into this repository will be declined,
+        so it is worth checking that first.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: >
+        What is hard or impossible today? Describe the situation you are in, not the solution
+        you have in mind — the best fix is often not the one first imagined.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you would like to see
+    validations:
+      required: true
+
+  - type: dropdown
+    id: boundary
+    attributes:
+      label: Does this change where decisions are made?
+      description: >
+        Would it evaluate policy locally, persist customer data in this tier, add a fixture
+        fallback on live failure, or treat CDI's own role check as the security control?
+      options:
+        - "No — presentation, workflow, docs, tooling, or developer experience"
+        - "Yes, or I am not sure"
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you considered
+    validations:
+      required: false

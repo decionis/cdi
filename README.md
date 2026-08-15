@@ -222,13 +222,18 @@ private disclosure process, scope, and response targets.
 
 ## Contributing
 
-Run `pnpm verify` before opening a pull request. Follow the conventions above and in
-[coding.rule.md](./coding.rule.md), and read the trust boundary before proposing anything that moves
-decision authority into this repository — that is the one change the project will not accept.
+Contributions are welcome. Start with **[CONTRIBUTING.md](./CONTRIBUTING.md)** for setup, the review
+gate, conventions, and DCO sign-off.
 
-Contributions are accepted under the Apache-2.0 license, per section 5 of the
-[LICENSE](./LICENSE). Contributor guidelines, a code of conduct, DCO sign-off enforcement, and CI are
-being added; see [OpenSource.md](./OpenSource.md) for what is landing and in what order.
+Run `pnpm verify` before opening a pull request — a green local run means a green CI run.
+
+Read the trust boundary above before proposing anything that moves decision authority into this
+repository. Evaluating policy locally, persisting customer data in this tier, or falling back to
+fixtures when a live call fails are the changes this project will not accept, and CONTRIBUTING.md
+says so up front so you find out from a document rather than from a closed pull request.
+
+Participation is governed by our [Code of Conduct](./CODE_OF_CONDUCT.md). Contributions are accepted
+under Apache-2.0 per section 5 of the [LICENSE](./LICENSE); there is no CLA.
 
 ## License
 

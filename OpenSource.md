@@ -38,12 +38,13 @@ Measured against the current tree this session, not estimated.
 | **No branch protection; no signed or attested releases**                                  | **High**               | Open          |
 | Auth and gateway paths (`middleware.ts`, `CdiSessionResolver`, `JsonHttpClient`) untested | High                   | ✅ Fixed      |
 | No `SECURITY.md`, no disclosure policy, no response-time commitment                       | High                   | ✅ Fixed      |
-| SDK dependency `@decionis-ai/sdk` declared but imported nowhere                           | Medium                 | Open          |
+| SDK dependency `@decionis-ai/sdk` declared but imported nowhere                           | Medium                 | ✅ Fixed      |
 
 Two open questions from the previous plan are now answered:
 
-- **`@decionis-ai/sdk` is publicly installable** from the default npm registry and is MIT-licensed.
-  It is not a barrier to outside installs. It is still dead weight — no source file imports it.
+- **`@decionis-ai/sdk` was publicly installable** from the default npm registry and MIT-licensed, so
+  it was never a barrier to outside installs — just dead weight, since no source file imported it.
+  Removed in W5.
 - **Its repository field points to `github.com/orepos/Decionis`**, not a `decionis` org. A reviewer
   tracing provenance from `decionis/cdi` → `@decionis-ai/sdk` → an unrelated-looking GitHub org will
   raise it. Align the org or be ready to explain it.
@@ -90,7 +91,7 @@ Copyright holder: **Decionis, Inc.**, a Delaware corporation. Landed:
    regulated procurement as worse than a restrictive license, because it cannot be cleared.
    `"private": true` is retained; the README now explains that it prevents accidental npm publication
    and does not restrict use under Apache-2.0.
-4. ✅ **`ThirdPartyLicenses.md`** — all 26 production packages inventoried by license: 15 MIT,
+4. ✅ **`ThirdPartyLicenses.md`** — all 25 production packages inventoried by license: 14 MIT,
    4 Apache-2.0, 3 ISC, 1 BSD-3-Clause, 1 0BSD, 1 CC-BY-4.0, 1 LGPL-3.0-or-later. Handing a buyer
    this file unprompted removes a full round-trip from their review. It notes that `@img/sharp-*` and
    `@next/swc-*` are platform-conditional, so a deployment-accurate SBOM must be regenerated on the
@@ -106,7 +107,8 @@ Remaining, and deliberately deferred:
 
 6. **DCO, not a CLA.** Apache-2.0 §5 already licenses inbound contributions under the same terms, so
    a CLA buys little unless relicensing is foreseeable, and it measurably suppresses contribution.
-   Enforce `git commit -s` with the DCO GitHub App — needs repo admin, lands with W5.
+   `CONTRIBUTING.md` and the PR template now document `git commit -s`; **installing the DCO GitHub
+   App to enforce it still needs repo admin.**
 7. **Per-file copyright headers — recommend skipping.** Standard npm-ecosystem practice is
    `LICENSE` + `NOTICE` + the `package.json` field, which is what SCA tooling reads. Add headers only
    if a named buyer's policy demands them; if so, enforce with an ESLint rule rather than by hand.
@@ -228,22 +230,40 @@ an authorization path that is worse than no suite at all.
 Still open from this workstream: the 8s gateway timeout remains hardcoded in `CdiRuntimeConfig`.
 Make it configurable or document it as deliberate.
 
-### W5 — Contributor surface
+### W5 — Contributor surface ✅ Done (pending two sign-offs)
 
-Smaller than it would be for a framework, because the realistic contribution profile is UI,
-accessibility, docs, and deployment recipes — not core changes.
+Deliberately smaller than it would be for a framework, because the realistic contribution profile is
+UI, accessibility, docs, and deployment recipes — not core changes. All community health files use
+GitHub's uppercase convention so the platform surfaces them automatically, the same ecosystem-filename
+exemption `page.tsx` and the workflows get.
 
-- **`Contributing.md`** — Node 20+/pnpm 9, the demo-mode loop, `pnpm verify` as the gate, the
-  PascalCase-except-framework-files convention, DCO sign-off, and a **"changes we will not accept"**
-  section naming the trust boundary. Anyone proposing that CDI evaluate policy locally should learn
-  that from a document, not from a closed PR.
-- **`CodeOfConduct.md`** — Contributor Covenant 2.1 with a real reporting address.
-- **`.github/CODEOWNERS`** — mandatory review on `domain/`, `infra/auth/`, `infra/api/`, and
-  `middleware.ts`. These encode the boundary and must not merge on a drive-by approval.
-- **Issue and PR templates.** The bug template must ask for the data mode; demo vs live is the first
-  question on every report.
-- **Remove the unused `@decionis-ai/sdk` dependency**, or import it where the gateway should be using
-  it. An unused SDK is the first thing a reviewer greps for.
+- ✅ **[`CONTRIBUTING.md`](../CONTRIBUTING.md)** — setup, the demo-mode loop, `pnpm verify` as the
+  gate, conventions, DCO sign-off, and the dependency-policy rules. It **opens** with "What CDI is
+  not", listing the five changes that will be declined regardless of implementation quality. Anyone
+  proposing that CDI evaluate policy locally learns it from a document rather than from a closed PR,
+  and is directed to open an issue first because it is a design conversation.
+- ✅ **[`CODE_OF_CONDUCT.md`](../CODE_OF_CONDUCT.md)** — Contributor Covenant 2.1, verbatim.
+- ✅ **[`.github/CODEOWNERS`](../.github/CODEOWNERS)** — mandatory review on `middleware.ts`,
+  `infra/auth/`, `infra/api/`, `infra/config/`, `domain/`, and `application/`, plus the supply-chain
+  surfaces (`package.json`, the lockfile, `scripts/`, the workflows, and CODEOWNERS itself) because a
+  change there can disable every check protecting the rest. Each entry carries a comment explaining
+  what it guards.
+- ✅ **Issue and PR templates.** The bug template's **first required field is the data mode** — demo
+  versus live is the first question on every report, and the same symptom has different causes in
+  each. Both issue templates open by routing security reports away from public issues, blank issues
+  are disabled, and `config.yml` links GHSA and platform support directly. The PR template carries an
+  explicit trust-boundary checkbox and a dependency checklist.
+- ✅ **Removed the unused `@decionis-ai/sdk` dependency.** Confirmed no source file imported it.
+  Production tree drops 26 → 25 packages. It is publicly installable and MIT-licensed, so it was
+  never a barrier — just dead weight, and the first thing a reviewer greps for. If a real integration
+  needs it, it comes back with the code that uses it.
+
+**Two sign-offs before this goes public:**
+
+- **The `@decionis/cdi-maintainers` and `@decionis/cdi-security` GitHub teams must exist**, with
+  members, or CODEOWNERS silently matches nothing and required-review enforcement is theatre.
+- **`conduct@decionis.com` must exist and be monitored.** Same reasoning as the security address: a
+  code of conduct whose reporting channel bounces is worse than not publishing one.
 
 ### W6 — Launch
 
