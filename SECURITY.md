@@ -8,13 +8,12 @@ nothing than not hear about a real one.
 
 **Do not open a public issue, pull request, or discussion for a suspected vulnerability.**
 
-Email **security@decionis.com**.
+Report privately through
+**[GitHub Security Advisories](https://github.com/decionis/cdi/security/advisories/new)** — the
+"Report a vulnerability" button on this repository's Security tab. It keeps the report, our
+questions, and any fix coordination in one private thread until a fix ships.
 
-> **While this repository is private, email is the only working route.** GitHub's private
-> vulnerability reporting is available on public repositories only, so the "Report a vulnerability"
-> button on the Security tab does not exist here yet. When this repository becomes public, GitHub
-> Security Advisories becomes the preferred channel — it keeps the report, our questions, and any fix
-> coordination in one private thread until a fix ships — and this section will say so.
+If you cannot use GitHub Security Advisories, email **security@decionis.com**.
 
 A useful report includes:
 
