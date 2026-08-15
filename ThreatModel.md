@@ -1,0 +1,185 @@
+# Threat Model
+
+[Architecture.md](./Architecture.md) describes how CDI is built. This describes what it is defending
+against, what it deliberately does not defend against, and where a reviewer can verify each claim in
+code.
+
+The short version: **CDI is not authoritative.** It renders evidence and forwards operator reviews.
+An attacker who fully compromises this tier can misrepresent what an operator sees and can forward
+reviews the operator's own credential was already entitled to make. They cannot change a processing
+limit, alter a policy, read a connector secret, or forge an entry in the audit ledger, because CDI
+holds none of those.
+
+## Assets
+
+| Asset                                                     | Where it lives                         | Exposure if CDI is compromised           |
+| --------------------------------------------------------- | -------------------------------------- | ---------------------------------------- |
+| Operator access token                                     | Cookie, server memory during a request | High — grants the operator's own rights  |
+| Organization scope (`orgId`)                              | Cookie or request header               | High — the tenant boundary               |
+| Customer account evidence                                 | Fetched per request, not persisted     | Medium — read exposure, no durable store |
+| Review decisions                                          | Forwarded upstream, not stored here    | Medium — an unauthorized forward         |
+| Policy logic, connector secrets, grants, dossiers, ledger | **Decionis platform only**             | **None — not present in this tier**      |
+
+CDI has no database, no session store, and no durable customer data. There is nothing here to
+exfiltrate at rest. That is a design property, not an accident, and it is the single largest
+reduction in this tier's blast radius.
+
+## Trust boundaries
+
+```text
+[1] Browser  ──►  [2] CDI Next.js server / BFF  ──►  [3] Decionis /v1/cdi APIs
+     untrusted         semi-trusted, this repo          authoritative
+```
+
+**Boundary 1 → 2** is the one this repository enforces. Everything from the browser is untrusted:
+cookies, headers, path segments, and request bodies.
+
+**Boundary 2 → 3** is where authority actually lives. CDI presents the operator's token and org
+scope; the platform decides. CDI cannot elevate what that token is entitled to do.
+
+## Threats and mitigations
+
+### T1 — Unauthenticated access to operator data
+
+An attacker requests a page or API route with no Decionis session.
+
+**Mitigated.** [`middleware.ts`](middleware.ts) requires both the access token and org id cookies on
+every path in live mode. Page requests redirect to `/sign-in`; API requests receive `401` rather than
+a redirect, so an API client surfaces the authentication failure instead of a parse error. Only
+`/api/health` and `/sign-in` are exempt.
+
+_Verify:_ `middleware.test.ts` — including that a token without an org scope, an org scope without a
+token, and an empty cookie value are all rejected.
+
+### T2 — Privilege escalation through a forged role claim
+
+Roles arrive in a client-readable `decionis_roles` cookie. An attacker edits it to `ADMIN`.
+
+**Partially mitigated, and this is the most important entry here.** CDI parses the claim
+defensively — unrecognized values are dropped, parsing is case-sensitive, and an unparseable claim
+resolves to `VIEWER` rather than to an empty role set. But **the cookie is client-supplied, so CDI's
+role check is a UX affordance, not the security control.**
+
+The actual control is upstream: the Decionis platform re-authorizes every review against the
+presented token. A forged `ADMIN` cookie changes which buttons render and lets a request past CDI's
+own check; it does not make the platform accept a review the token is not entitled to make.
+
+_Verify:_ [`CdiSessionResolver.ts`](infra/auth/CdiSessionResolver.ts) and its tests;
+[`OpportunityService.ts`](application/opportunities/OpportunityService.ts) for the `APPROVER`/`ADMIN`
+gate.
+
+**Residual risk:** a deployment whose upstream does not re-authorize would be relying on a
+client-controlled cookie. Integrators must not treat CDI's role check as authoritative.
+
+### T3 — Cross-organization data exposure
+
+An attacker manipulates `orgId` to read another tenant's portfolio.
+
+**Mitigated upstream, forwarded faithfully here.** The org scope is taken from the session and sent
+as both a query parameter and the `X-Decionis-Org-Id` header; it is never taken from user-supplied
+route parameters. The platform enforces the tenant boundary against the presented token — an attacker
+substituting another org id still presents their own token, which the platform rejects.
+
+_Verify:_ [`DecionisCdiGateway.ts`](infra/api/DecionisCdiGateway.ts),
+[`CdiRepositoryFactory.ts`](infra/repositories/CdiRepositoryFactory.ts).
+
+### T4 — Credential leakage to the browser
+
+**Mitigated.** The gateway client is server-only and is constructed inside the composition root. The
+credential travels in the `Authorization` header and never in a URL, where it would land in proxy
+logs, browser history, and referrer headers.
+
+The subtler exposure is React Server Components: any prop passed from a server component into a
+client component is serialized into the RSC payload delivered to the browser. `AppShell` receives the
+whole `CdiSession`, which carries `accessToken`. It is a server component, and the only interactive
+client component — `ReviewAction` — receives just an opportunity id and a `canReview` boolean, both
+derived server-side. The token never crosses the boundary.
+
+Nothing in the type system enforces that: adding `"use client"` to `AppShell` would ship the access
+token in every page payload without failing typecheck or any behavioural test.
+
+_Verify:_ `JsonHttpClient.test.ts` asserts the token appears in the header and not in the request URL.
+`ServerClientBoundary.test.ts` asserts structurally that no client component references `CdiSession`
+or any token field, and that every component receiving a session stays on the server.
+
+### T5 — Operators acting on fabricated or stale data
+
+A regulated decision made against wrong data is a real harm, not merely a bug.
+
+**Mitigated.** A live API failure surfaces as an error and **never** falls back to demo fixtures.
+Every upstream response is parsed through a Zod contract in `domain/` before entering the application
+layer, so schema drift fails loudly at the boundary rather than rendering as a subtly wrong number.
+Requests are sent with `cache: "no-store"`.
+
+_Verify:_ `JsonHttpClient.test.ts` (schema rejection, no-store);
+[`CdiRepositoryFactory.ts`](infra/repositories/CdiRepositoryFactory.ts) (no fixture fallback path in
+live mode).
+
+### T6 — Demo mode reached in a production deployment
+
+The demo session is deliberately privileged — `ADMIN` and `APPROVER`, no credential required.
+
+**Mitigated by configuration.** `CdiRuntimeConfig` defaults `NODE_ENV=production` to live mode, and
+live mode throws at startup if `DECIONIS_API_BASE_URL` is unset, so a misconfigured production
+instance fails to boot rather than serving fixtures. Setting `CDI_DATA_MODE=demo` in production is an
+explicit, deliberate act.
+
+_Verify:_ [`CdiRuntimeConfig.ts`](infra/config/CdiRuntimeConfig.ts) and its tests;
+`CdiSessionResolver.test.ts` documents the demo session's privileges.
+
+**Residual risk:** an operator who deliberately sets `CDI_DATA_MODE=demo` in production serves an
+unauthenticated, fully-privileged fixture app. Deployment tooling should assert this variable.
+
+### T7 — Internal detail disclosure through errors
+
+**Mitigated.** [`CdiApiErrorMapper.ts`](infra/api/CdiApiErrorMapper.ts) maps known errors to typed
+responses and everything else to a generic `500` with a fixed message. Upstream gateway statuses
+outside 400–599 are clamped to `502`.
+
+_Verify:_ `CdiApiErrorMapper.test.ts` asserts an unrecognized error's original message — including
+host and port detail — does not reach the response body.
+
+## Transport and browser hardening
+
+Set globally in [`next.config.ts`](next.config.ts):
+
+| Header                         | Value                                      | Purpose                                      |
+| ------------------------------ | ------------------------------------------ | -------------------------------------------- |
+| `X-Content-Type-Options`       | `nosniff`                                  | No MIME sniffing                             |
+| `X-Frame-Options`              | `DENY`                                     | No framing — clickjacking on review actions  |
+| `Referrer-Policy`              | `strict-origin-when-cross-origin`          | No path leakage to third parties             |
+| `Permissions-Policy`           | `camera=(), microphone=(), geolocation=()` | No device access                             |
+| `Cross-Origin-Opener-Policy`   | `same-origin`                              | Process isolation                            |
+| `Cross-Origin-Resource-Policy` | `same-site`                                | No cross-site embedding                      |
+| `X-Robots-Tag`                 | `noindex, nofollow, noarchive`             | Operator tooling stays out of search indexes |
+
+`poweredByHeader` is disabled.
+
+## Accepted risk and known gaps
+
+Stated plainly, because a threat model that lists only mitigations is marketing.
+
+- **No Content-Security-Policy.** The most significant gap. `X-Frame-Options` and the COOP/CORP pair
+  cover framing and isolation, but there is no script-source restriction. Adding a CSP is tracked in
+  [OpenSource.md](./OpenSource.md).
+- **Role claims are client-readable and client-writable.** See T2. Correct only because the platform
+  re-authorizes; integrators must not weaken that assumption.
+- **No rate limiting or brute-force protection** in this tier. Expected at the edge or upstream.
+- **No CSRF token on the review endpoint.** It is a JSON `POST` requiring a bearer token or a session
+  cookie plus an org header; a cross-site form post cannot set the header. A deployment relying purely
+  on cookies should confirm `SameSite` is enforced on the Decionis handoff cookies, which are set
+  outside this repository.
+- **No audit logging in this tier.** Deliberate — the authoritative record is the platform's ledger.
+  CDI logs would be a second, weaker, divergent record.
+- **The 8s upstream timeout is hardcoded** in `CdiRuntimeConfig` and not configurable per deployment.
+
+## Data handling
+
+- **No telemetry, no analytics, no third-party scripts.** The server tier makes no outbound request
+  to any host other than the configured `DECIONIS_API_BASE_URL`. The browser calls only this
+  application's own same-origin BFF routes under `/api/cdi/`; it never contacts Decionis or any third
+  party directly.
+- **No customer data at rest.** No database, no cache, no session store, no log of evidence content.
+- **No cookies set by this application.** Session cookies originate from the Decionis identity
+  handoff; CDI only reads them.
+- **No PII in URLs.** Account identifiers are opaque references, not customer identity.

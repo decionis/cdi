@@ -1,0 +1,124 @@
+name: Audit
+
+# Supply-chain gate: known vulnerabilities and license policy.
+#
+# Runs on every pull request so a dependency change cannot introduce an advisory,
+# and weekly so an advisory published against an unchanged tree is found by us
+# rather than by a customer's security reviewer. The weekly run opens an issue on
+# failure — a scheduled job that only turns a tab red is a job nobody sees.
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  schedule:
+    # Mondays 06:00 UTC — early enough in the week to act on.
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: audit-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  audit:
+    name: audit
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@0977fd99725f1db4007ccb2928dbb4e90d06cc86 # v6.0.10
+
+      - name: Set up Node
+        uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: "22"
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Known vulnerabilities
+        # Production tree only. Dev tooling is not redistributed in the deployed
+        # artifact, and failing the gate on a Vitest transitive would train people
+        # to ignore it.
+        run: pnpm audit --prod
+
+      - name: License policy
+        run: pnpm licenses:check
+
+  report:
+    name: report
+    # Only for unattended runs. On a pull request the failure is already in front
+    # of the author, and filing an issue for it would be noise.
+    needs: audit
+    if: failure() && github.event_name == 'schedule'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      issues: write
+
+    steps:
+      - name: Open or update tracking issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+          existing=$(gh issue list \
+            --repo "$REPO" \
+            --state open \
+            --label dependencies \
+            --search "Scheduled dependency audit failed in:title" \
+            --limit 1 \
+            --json number \
+            --jq '.[0].number // empty')
+
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --repo "$REPO" \
+              --body "The scheduled audit failed again on $(date -u +%Y-%m-%d). Run: $RUN_URL"
+            exit 0
+          fi
+
+          # Quoted delimiter: the body contains backticks, which an unquoted
+          # heredoc would execute as command substitution. The run URL is
+          # substituted afterwards rather than interpolated.
+          cat > issue-body.md <<'BODY'
+          The weekly supply-chain audit failed against an unchanged dependency tree,
+          which means a new advisory was published or a license changed upstream.
+
+          Run: __RUN_URL__
+
+          To reproduce locally:
+
+          ```bash
+          pnpm install --frozen-lockfile
+          pnpm audit --prod
+          pnpm licenses:check
+          ```
+
+          If the fix is a version bump, check whether it lets an existing entry in
+          the `pnpm.overrides` block be removed — those are forward pins to patched
+          releases, not permanent freezes. See OpenSource.md.
+          BODY
+
+          body=$(cat issue-body.md)
+          printf '%s\n' "${body//__RUN_URL__/$RUN_URL}" > issue-body.md
+
+          gh issue create \
+            --repo "$REPO" \
+            --title "Scheduled dependency audit failed" \
+            --label dependencies \
+            --body-file issue-body.md
