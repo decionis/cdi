@@ -26,36 +26,28 @@ updates:
       include: scope
 
     groups:
-      # One pull request per ecosystem cluster rather than per package. These
-      # move together and are pointless to review individually.
-      next:
-        patterns:
-          - "next"
-          - "@next/*"
-          - "eslint-config-next"
-      react:
-        patterns:
-          - "react"
-          - "react-dom"
-          - "@types/react"
-          - "@types/react-dom"
-      linting:
-        patterns:
-          - "eslint"
-          - "@eslint/*"
-          - "prettier"
-      testing:
-        patterns:
-          - "vitest"
-          - "@vitest/*"
-          - "@testing-library/*"
-          - "jsdom"
-      types:
-        patterns:
-          - "@types/*"
-        exclude-patterns:
-          - "@types/react"
-          - "@types/react-dom"
+      # Grouped by dependency type and update size rather than by package name.
+      #
+      # The previous pattern-based groups (next, react, linting, testing, types)
+      # only covered packages someone had thought to list, so lucide-react, zod
+      # and typescript each still opened their own pull request — five or six a
+      # week for a repository this size. Matching on dependency-type catches
+      # everything, including packages added later that nobody remembers to add
+      # to a pattern list.
+      #
+      # Majors are deliberately left out of both groups. They land as individual
+      # pull requests because they are the ones that actually need reading — the
+      # vitest 2 -> 3 bump earlier in this repository's history is the example.
+      production:
+        dependency-type: production
+        update-types:
+          - minor
+          - patch
+      development:
+        dependency-type: development
+        update-types:
+          - minor
+          - patch
 
   - package-ecosystem: github-actions
     directory: "/"
