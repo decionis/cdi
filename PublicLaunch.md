@@ -132,17 +132,23 @@ section should stop saying the code "is not yet open source".
       Expect points lost on Signed-Releases until a tag exists, and on Contributors while there is one
       maintainer.
 - [ ] **Cut `v0.1.0`.** The release pipeline has been proven with `workflow_dispatch -f dry_run=true`;
-      a tag exercises the publish path for real. Verify the attestation from a clean directory:
-
-      ```bash
-          gh attestation verify decionis-cdi-0.1.0.tar.gz --repo decionis/cdi
-          ```
-
+      a tag exercises the publish path for real. Then verify the attestation from a clean directory,
+      as a customer would — see below.
 - [ ] **Stand up the public demo** on `CDI_DATA_MODE=demo` using the [Dockerfile](./Dockerfile).
       `next.config.ts` sets `X-Robots-Tag: noindex, nofollow, noarchive`; drop that header on the demo
       host only if discoverability matters.
 - [ ] **Announce.** Not before the above. The repository gets one first impression, and the buyers who
       look earliest are the ones who matter most.
+
+Verifying the first release the way a customer would:
+
+```bash
+gh release download v0.1.0 --repo decionis/cdi --pattern '*.tar.gz'
+gh attestation verify decionis-cdi-0.1.0.tar.gz --repo decionis/cdi
+```
+
+That is the claim `EvidencePack.md` makes to reviewers, so it is worth running once from a clean
+directory before anyone is invited to.
 
 ## What not to do
 
