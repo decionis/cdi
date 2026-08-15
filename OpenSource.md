@@ -38,7 +38,11 @@ Measured against the current tree this session, not estimated.
 | No signed or attested releases, no SBOM                                                   | High                   | ✅ Fixed      |
 | Branch protection — PR + code-owner review enforced                                       | High                   | ✅ Fixed      |
 | **Required status checks absent, so a PR can merge with CI red**                          | **High**               | **Open**      |
-| **Push protection, Dependabot, and private vuln reporting all disabled**                  | **High**               | **Open**      |
+| Dependabot security updates disabled; `dependencies` label missing                        | High                   | ✅ Fixed      |
+| **Push protection and private vulnerability reporting still disabled**                    | **High**               | **Open**      |
+| CODEOWNERS named GitHub teams that do not exist, so no PR could be merged                 | Blocker                | ✅ Fixed      |
+| **Sole code owner cannot approve their own PR — repository still deadlocks**              | **Blocker**            | **Open**      |
+| 10 advisories in the dev tree the production-only audit did not cover                     | High                   | ✅ Fixed      |
 | Auth and gateway paths (`middleware.ts`, `CdiSessionResolver`, `JsonHttpClient`) untested | High                   | ✅ Fixed      |
 | No `SECURITY.md`, no disclosure policy, no response-time commitment                       | High                   | ✅ Fixed      |
 | SDK dependency `@decionis-ai/sdk` declared but imported nowhere                           | Medium                 | ✅ Fixed      |
@@ -128,10 +132,26 @@ This is where an enterprise buyer's opinion is actually formed.
 2. ✅ **CI on every PR and push — done.** `.github/workflows/verify.yml` runs `pnpm verify` on Node 20
    and 22 with a pnpm cache and `--frozen-lockfile`, so a dependency change cannot land without its
    lockfile. Node 20 is the floor declared in `engines`; the matrix tests what we promise.
-3. ✅ **Audit as a blocking job — done.** `.github/workflows/audit.yml` runs `pnpm audit --prod` and
-   `pnpm licenses:check` on every pull request, weekly on Mondays at 06:00 UTC, and on demand. The
-   scheduled run opens a tracking issue on failure and comments on the existing one rather than
-   filing duplicates — a scheduled job that only turns a tab red is a job nobody sees.
+3. ✅ **Audit as a blocking job — done, and since widened.** `.github/workflows/audit.yml` runs on
+   every pull request, weekly on Mondays at 06:00 UTC, and on demand. The scheduled run opens a
+   tracking issue on failure and comments on the existing one rather than filing duplicates — a
+   scheduled job that only turns a tab red is a job nobody sees.
+
+   It originally audited the **production tree only**, on the reasoning that dev tooling is not
+   redistributed. That reasoning was incomplete and this plan was wrong to settle for it: dev
+   dependencies execute on the CI runner with access to the token and the source. The gap was found
+   the way gaps usually are — four failed Dependabot security jobs pointed at `js-yaml`, and checking
+   why turned up **10 advisories in the dev tree (1 critical, 6 high, 3 moderate)** while
+   `pnpm audit --prod` reported clean.
+
+   Two audits now run, with deliberately different thresholds:
+
+   | Scope                           | Threshold         | Why                                                                   |
+   | ------------------------------- | ----------------- | --------------------------------------------------------------------- |
+   | `pnpm audit --prod`             | any severity      | This is what ships                                                    |
+   | `pnpm audit --audit-level high` | high and critical | Build toolchain; moderate churn would train people to ignore the gate |
+
+   Both are clean as of this change.
 
    The license gate ([CheckLicensePolicy.mjs](../scripts/CheckLicensePolicy.mjs)) asserts that every
    production dependency carries an approved license, with package-scoped exceptions for the two
@@ -324,16 +344,28 @@ exemption `page.tsx` and the workflows get.
 Sign-off status:
 
 - ✅ **`conduct@decionis.com` confirmed monitored.**
-- ⚠️ **The `@decionis/cdi-maintainers` and `@decionis/cdi-security` GitHub teams must exist**, with
-  members, or CODEOWNERS silently matches nothing. Combined with the branch-protection gap in W2.4,
-  code-owner review is currently enforcing nothing at all.
-- ⚠️ **The `dependencies` label does not exist** in this repository. The scheduled audit job creates
-  its tracking issue with `--label dependencies`, and `gh issue create` fails on an unknown label —
-  so the first weekly failure would produce no issue and no notification. One-line fix:
+- ✅ **The `dependencies` label now exists**, so the scheduled audit job can file its tracking issue.
+- ✅ **CODEOWNERS now names a real code owner.** It originally referenced
+  `@decionis/cdi-maintainers` and `@decionis/cdi-security`, neither of which existed — both returned
+  404 — so the ruleset's code-owner requirement could never be satisfied and **no pull request could
+  merge at all**, including the ones closing the remaining gaps. It now names `@ocularminds`, who has
+  admin access and is therefore a valid owner.
+
+  Restore team-based ownership when there is a team to own it. **A team is only a valid code owner if
+  it has write access to the repository** — creating it is not enough:
 
   ```bash
-  gh label create dependencies --repo decionis/cdi --color 0366d6 --description "Dependency and supply-chain updates"
+  gh api orgs/decionis/teams -f name='cdi-maintainers' -f privacy=closed
+  gh api -X PUT orgs/decionis/teams/cdi-maintainers/repos/decionis/cdi -f permission=push
+  gh api -X PUT orgs/decionis/teams/cdi-maintainers/memberships/<user> -f role=maintainer
   ```
+
+- ⚠️ **A sole code owner still cannot merge their own work.** GitHub does not allow approving your own
+  pull request, so with one code owner and required review the repository deadlocks on anything that
+  owner authors. Pick one: add a second reviewer, add the maintainer to the ruleset's bypass list, or
+  set required approvals to 0 and rely on the status checks. **The bypass list is the honest choice
+  for a solo repository** — it says out loud that there is no second pair of eyes yet, rather than
+  implying a review gate that cannot function. Revisit when a second maintainer exists.
 
 ### W6 — Launch — mostly done
 

@@ -55,12 +55,18 @@ pnpm verify
 That runs format, lint, typecheck, tests, and a production build — the same thing CI runs on Node 20
 and 22. **A green local `pnpm verify` means a green CI run.** Run it before you open a pull request.
 
-Two further checks run in CI and are worth running locally if you touch dependencies:
+Three further checks run in CI and are worth running locally if you touch dependencies:
 
 ```bash
-pnpm audit --prod      # no known vulnerabilities in the production tree
-pnpm licenses:check    # every production dependency within the approved license set
+pnpm audit --prod            # production tree: any severity fails
+pnpm audit --audit-level high # whole tree incl. dev: high and critical fail
+pnpm licenses:check          # every production dependency within the approved license set
 ```
+
+The two audits have different thresholds on purpose. The production tree is what ships, so anything
+there fails. Dev dependencies are not redistributed, but they execute on the CI runner with access to
+the token and the source — so high and critical still block, while moderate churn in tooling does
+not, because a gate that fires constantly is a gate people learn to ignore.
 
 ### Adding a dependency
 
