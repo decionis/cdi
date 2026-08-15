@@ -95,22 +95,33 @@ jobs:
           echo "sha256=$(sha256sum "${name}.tar.gz" | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
 
       - name: Generate CycloneDX SBOM
-        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
-        with:
-          # Scan the assembled bundle, NOT the repository root.
-          #
-          # Scanning "." produced an SBOM of 566 components — the whole workspace
-          # including ESLint, Vitest and every other dev dependency — attached to
-          # an artifact that ships around 25. That is precisely the "your SBOM
-          # does not match your container" objection this file exists to
-          # pre-empt, and it was found by the first dry run rather than by a
-          # customer. The bundle's node_modules is what actually runs.
-          path: ${{ steps.bundle.outputs.bundle }}
-          format: cyclonedx-json
-          output-file: "decionis-cdi-${{ steps.bundle.outputs.version }}.cdx.json"
-          # This action uploads its own workflow artifact by default, which
-          # duplicated the explicit upload below.
-          upload-artifact: false
+        # Generated from `pnpm licenses list --prod` rather than scanned off the
+        # filesystem. Two attempts with Syft produced, in order, 566 components
+        # (the whole workspace, dev tooling included) and then zero — pnpm keeps
+        # the real packages under node_modules/.pnpm behind symlinks, and
+        # neither a directory scan nor an archive scan resolved them. v0.1.0
+        # shipped the empty one.
+        #
+        # pnpm already knows the production set, so the SBOM and the published
+        # ThirdPartyLicenses.md are generated from the same source and cannot
+        # disagree. It also removes a third-party action from the release path.
+        run: node scripts/GenerateSbom.mjs "decionis-cdi-${{ steps.bundle.outputs.version }}.cdx.json" "${{ steps.bundle.outputs.version }}"
+
+      - name: Assert the SBOM describes something
+        # The generator refuses to write an empty document, but this asserts the
+        # artifact on disk independently. v0.1.0 shipped a 419-byte SBOM with
+        # zero components: it passed every schema check and answered nothing,
+        # and nothing caught it until someone opened the file.
+        env:
+          SBOM: "decionis-cdi-${{ steps.bundle.outputs.version }}.cdx.json"
+        run: |
+          set -euo pipefail
+          count=$(node -e "process.stdout.write(String((JSON.parse(require('fs').readFileSync(process.env.SBOM,'utf8')).components||[]).length))")
+          echo "SBOM components: ${count}"
+          if [ "${count}" -lt 5 ]; then
+            echo "::error title=SBOM is effectively empty::Only ${count} components."
+            exit 1
+          fi
 
       - name: Attest build provenance
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
