@@ -41,19 +41,21 @@ Do not treat their absence today as an oversight. They are stage two.
 
 ### Still required — human sign-off, not engineering
 
-- [ ] **Demo fixture sign-off.** Someone with the authority to say so confirms in writing that no
-      account name, corridor, processing limit, or external reference in `infra/demo/DemoCdiData.ts`
-      derives from a real customer, and that no fixture resembles a nameable one. This is the single
-      file in the repository shaped like real customer data, and it is about to be world-readable.
+- [x] **Demo fixtures regenerated, so provenance is true by construction.** Rather than ask someone
+      to attest that invented data is invented, `infra/demo/DemoCdiData.ts` was rewritten from
+      scratch under three conventions that make a collision with real data impossible: organisations
+      are named from the NATO phonetic alphabet, people carry the RFC 2606 `Example` surname, and
+      external references are sequential rather than CRM-shaped. The demo operator and workspace
+      labels were regenerated the same way. `DemoCdiData.test.ts` enforces all three, plus the
+      absence of any email address, URL, or phone number — mutation-tested against a realistic
+      company name, a realistic person name, and an embedded email, each of which fails the suite.
 - [ ] **Trademark and naming review.** "Decionis", "Adaptive Customer Decision Intelligence", and the
       `@decionis` npm scope go public with the repository. Confirm the marks are held and that the
       README's product claims are ones marketing and legal will stand behind.
-- [ ] **Confirm the disclosure response targets** in `SECURITY.md` — 2 business days to acknowledge,
-      5 to assess, 30 days for high/critical, 90 for low/medium — are commitments the team will
-      honour. A missed public SLA does more damage than a slower published one.
-- [ ] **Name the Decionis platform security contact.** `SECURITY.md` routes out-of-scope reports "to
-      the Decionis platform security contact" without saying who that is, which makes the instruction
-      unactionable.
+- [x] **Disclosure response targets confirmed** — 2 business days to acknowledge, 5 to assess, 30
+      days for high/critical, 90 for low/medium. These are commitments the team will honour.
+- [x] **Platform security contact named** — `security@decionis.com` handles both CDI and platform
+      reports. `SECURITY.md` now says so instead of routing to an unnamed contact.
 - [ ] **Decide on the `code_scanning` and `code_coverage` ruleset rules.** Both currently wait on
       signals this repository does not produce. Enabling Code Security resolves the first; the second
       needs `pnpm test --coverage` and a reporter, or the rule should be removed. A gate waiting on a
@@ -131,20 +133,21 @@ section should stop saying the code "is not yet open source".
 - [ ] **Watch the first Scorecard run** and treat the score as a to-do list rather than a grade.
       Expect points lost on Signed-Releases until a tag exists, and on Contributors while there is one
       maintainer.
-- [ ] **Cut `v0.1.0`.** The release pipeline has been proven with `workflow_dispatch -f dry_run=true`;
-      a tag exercises the publish path for real. Then verify the attestation from a clean directory,
-      as a customer would — see below.
+- [x] **First releases cut.** `v0.1.0` published, then superseded by `v0.1.1` after its SBOM asset
+      was found to contain zero components. Both attestations verify from a clean directory. Before
+      tagging anything further, confirm master is green first — `v0.1.0` was tagged against a broken
+      lockfile and produced a failed release.
 - [ ] **Stand up the public demo** on `CDI_DATA_MODE=demo` using the [Dockerfile](./Dockerfile).
       `next.config.ts` sets `X-Robots-Tag: noindex, nofollow, noarchive`; drop that header on the demo
       host only if discoverability matters.
 - [ ] **Announce.** Not before the above. The repository gets one first impression, and the buyers who
       look earliest are the ones who matter most.
 
-Verifying the first release the way a customer would:
+Verifying a release the way a customer would:
 
 ```bash
-gh release download v0.1.0 --repo decionis/cdi --pattern '*.tar.gz'
-gh attestation verify decionis-cdi-0.1.0.tar.gz --repo decionis/cdi
+gh release download v0.1.1 --repo decionis/cdi --pattern '*.tar.gz'
+gh attestation verify decionis-cdi-0.1.1.tar.gz --repo decionis/cdi
 ```
 
 That is the claim `EvidencePack.md` makes to reviewers, so it is worth running once from a clean

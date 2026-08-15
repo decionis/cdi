@@ -23,7 +23,7 @@ describe("OpportunityService", () => {
     );
 
     await expect(
-      service.review("opp-atlas-limit", { decision: "APPROVE" }),
+      service.review("opp-kilo-limit", { decision: "APPROVE" }),
     ).rejects.toBeInstanceOf(CdiForbiddenError);
   });
 
@@ -33,7 +33,7 @@ describe("OpportunityService", () => {
       session(["APPROVER"]),
     );
 
-    const result = await service.review("opp-atlas-limit", {
+    const result = await service.review("opp-kilo-limit", {
       decision: "HOLD",
     });
 
