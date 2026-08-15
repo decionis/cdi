@@ -1,0 +1,57 @@
+name: CodeQL
+
+# Static analysis for the JavaScript/TypeScript tree.
+#
+# The audit workflow tells us a dependency has a known advisory. CodeQL looks at
+# the code we wrote — injection, unsafe deserialization, unvalidated redirects.
+# Neither substitutes for the other.
+#
+# Requires GitHub Code Security to be enabled while this repository is private or
+# internal; on a public repository it works with no entitlement. If the "Perform
+# analysis" step fails with a 403, that entitlement is the reason.
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+  schedule:
+    # Tuesdays 05:00 UTC. Offset from the Monday dependency audit so a bad week
+    # arrives as two separate signals rather than one pile.
+    - cron: "0 5 * * 2"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: codeql-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  analyze:
+    name: analyze
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      security-events: write # upload the SARIF results
+      actions: read
+
+    steps:
+      - name: Check out
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@c16c0f3f2812ec4bb3750a5ed64873fe2ce0fbef # codeql-bundle-v2.26.3
+        with:
+          languages: javascript-typescript
+          # security-and-quality is noisier than the default security-extended
+          # but catches the maintainability defects that turn into security ones.
+          queries: security-and-quality
+
+      - name: Perform analysis
+        uses: github/codeql-action/analyze@c16c0f3f2812ec4bb3750a5ed64873fe2ce0fbef # codeql-bundle-v2.26.3
+        with:
+          category: "/language:javascript-typescript"

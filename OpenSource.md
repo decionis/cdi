@@ -35,7 +35,9 @@ Measured against the current tree this session, not estimated.
 | No `LICENSE` file, so the code is all-rights-reserved                                     | Blocker                | ✅ Fixed      |
 | LGPL-3.0-or-later present in the production tree (`@img/sharp-libvips-*`)                 | High — needs an answer | ✅ Documented |
 | No CI or audit enforcement                                                                | High                   | ✅ Fixed      |
-| **No branch protection; no signed or attested releases**                                  | **High**               | Open          |
+| No signed or attested releases, no SBOM                                                   | High                   | ✅ Fixed      |
+| **Branch protection ruleset exists but is `disabled` and targets no branch**              | **High**               | **Open**      |
+| **Push protection, Dependabot, and private vuln reporting all disabled**                  | **High**               | **Open**      |
 | Auth and gateway paths (`middleware.ts`, `CdiSessionResolver`, `JsonHttpClient`) untested | High                   | ✅ Fixed      |
 | No `SECURITY.md`, no disclosure policy, no response-time commitment                       | High                   | ✅ Fixed      |
 | SDK dependency `@decionis-ai/sdk` declared but imported nowhere                           | Medium                 | ✅ Fixed      |
@@ -137,20 +139,59 @@ This is where an enterprise buyer's opinion is actually formed.
    fail permanently on a Linux runner against a macOS-generated file. Asserting the license set is
    platform-independent and is the property a reviewer actually cares about.
 
-4. **Branch protection on `master`** — required checks, required review, linear history. **Needs repo
-   admin; the workflows above do nothing until their checks are marked required.**
+4. ⚠️ **Branch protection on `master` — configured but NOT in effect.** A ruleset named
+   "Decionis Protection" exists on the repository and is, as of this writing, doing nothing:
+
+   | Setting                | Actual state                                      |
+   | ---------------------- | ------------------------------------------------- |
+   | `enforcement`          | `disabled` — the ruleset is inactive              |
+   | `conditions.ref_name`  | `include: []` — targets no branch, even if active |
+   | Rules present          | `deletion`, `non_fast_forward` only               |
+   | Required status checks | **absent**                                        |
+   | Required PR review     | **absent**                                        |
+   | Code-owner review      | **absent**                                        |
+
+   So `master` currently accepts a direct push, and a pull request can merge with `verify` and
+   `audit` red. Fixing it needs three things: set enforcement to **Active**, target `master` (or
+   `~DEFAULT_BRANCH`), and add the **Require status checks to pass** rule naming
+   `verify (node 20)`, `verify (node 22)`, and `audit`, plus **Require a pull request before merging**
+   with code-owner review. Until then W5's CODEOWNERS is advisory and the workflows are decorative.
+
 5. ✅ **Every GitHub Action pinned by commit SHA**, not tag, with the version in a trailing comment.
    Tags are mutable; a governance product that resolves build steps by moving reference undercuts its
-   own supply-chain story.
-6. **SBOM per release** — CycloneDX JSON attached to the GitHub release. Increasingly a hard
-   procurement requirement rather than a differentiator, and it is one CI step.
-7. **Build provenance** — SLSA attestation via `actions/attest-build-provenance`. If anything is ever
-   published to npm, use `--provenance`.
-8. **Enable CodeQL, secret scanning, and push protection** at the repo level so history stays clean
-   after launch.
-9. **Publish the OpenSSF Scorecard badge** once the above lands. It gives procurement a third-party
-   number to cite instead of taking our word for the posture — which is the entire point of doing
-   this in the open.
+   own supply-chain story. Verified across all five workflows.
+6. ✅ **SBOM per release** — [`release.yml`](../.github/workflows/release.yml) generates a CycloneDX
+   JSON SBOM with Syft and attaches it to the GitHub release. Generated **on the Linux build platform
+   from the actually-resolved tree**, which is the point: the checked-in inventory is macOS-generated
+   and platform-conditional, so only a build-time SBOM matches what ships.
+7. ✅ **Build provenance** — the same workflow produces a signed SLSA attestation over the deployable
+   tarball via `actions/attest-build-provenance`. A recipient verifies it with
+   `gh attestation verify <tarball> --repo decionis/cdi`, which confirms the artifact came from this
+   workflow and this commit rather than from someone's laptop. The release notes carry that command.
+   Nothing is published to npm (`private: true`), so `--provenance` does not apply.
+8. **Repository security settings — partially done, and the gaps are the interesting part:**
+
+   | Setting                             | State                                                    |
+   | ----------------------------------- | -------------------------------------------------------- |
+   | Secret scanning                     | ✅ enabled                                               |
+   | **Push protection**                 | ❌ **disabled** — secrets can still be pushed            |
+   | **Dependabot security updates**     | ❌ **disabled**                                          |
+   | **Private vulnerability reporting** | ❌ not enabled — `SECURITY.md`'s primary channel 404s    |
+   | CodeQL workflow                     | ✅ [`codeql.yml`](../.github/workflows/codeql.yml) added |
+
+   Secret scanning without push protection detects a leaked credential _after_ it is in history,
+   which for a fintech repository about to go public is the expensive half. All four toggles need
+   repo admin.
+
+   **CodeQL requires GitHub Code Security while this repository is internal**; on a public repository
+   it needs no entitlement. If the analysis step fails with a 403, that is why.
+
+9. ✅ **OpenSSF Scorecard workflow added**, and deliberately not yet publishing.
+   [`scorecard.yml`](../.github/workflows/scorecard.yml) runs weekly with `publish_results: false`,
+   because publishing requires a **public** repository and this one is `internal`. **There is no
+   badge yet** — flip `publish_results` and add the badge in the same change that makes the
+   repository public. Several checks (Branch-Protection, Signed-Releases) return limited results
+   until then, which also makes it a useful dry-run of how we will score.
 
 ### W3 — Security assurance artifacts ✅ Done (pending two sign-offs)
 
@@ -176,19 +217,19 @@ makes no outbound request to any host but `DECIONIS_API_BASE_URL`, and the sessi
 chain is entirely server-side. That last one is now enforced by `ServerClientBoundary.test.ts` — see
 W4.
 
-**Three sign-offs before this goes public:**
+Sign-off status:
 
-- **Private vulnerability reporting must be enabled** in repository settings (Settings → Code security
-  → Private vulnerability reporting). `SECURITY.md` names GitHub Security Advisories as the primary
-  channel; until that setting is on, the "Report a vulnerability" link 404s and the documented process
-  does not exist. Needs repo admin.
-- **`security@decionis.com` must exist and be monitored.** A disclosure address that bounces is worse
-  than none; it converts a responsible reporter into a public one. The same applies to the Decionis
-  platform security contact that `SECURITY.md` routes out-of-scope reports to — it is referenced but
-  not yet named, and should be before launch.
-- **The response targets are a proposal, not a commitment** — 2 business days to acknowledge,
-  5 to assess, 30 days for high/critical, 90 for low/medium. Confirm or change them. A missed public
-  SLA does more damage than a slower published one.
+- ✅ **`security@decionis.com` confirmed monitored.**
+- ⚠️ **Private vulnerability reporting is still not enabled** (Settings → Code security → Private
+  vulnerability reporting). `SECURITY.md` names GitHub Security Advisories as the **primary** channel;
+  until that setting is on, the "Report a vulnerability" link 404s and a reporter falls back to email
+  — or, worse, to a public issue. Needs repo admin.
+- ⚠️ **The Decionis platform security contact is referenced but not named.** `SECURITY.md` routes
+  out-of-scope reports "to the Decionis platform security contact" without saying who that is. Name
+  it before launch, or the routing instruction is unactionable.
+- ⚠️ **The response targets are still a proposal, not a commitment** — 2 business days to
+  acknowledge, 5 to assess, 30 days for high/critical, 90 for low/medium. Confirm or change them.
+  A missed public SLA does more damage than a slower published one.
 
 ### W4 — Make the claims verifiable ✅ Done
 
@@ -258,12 +299,19 @@ exemption `page.tsx` and the workflows get.
   never a barrier — just dead weight, and the first thing a reviewer greps for. If a real integration
   needs it, it comes back with the code that uses it.
 
-**Two sign-offs before this goes public:**
+Sign-off status:
 
-- **The `@decionis/cdi-maintainers` and `@decionis/cdi-security` GitHub teams must exist**, with
-  members, or CODEOWNERS silently matches nothing and required-review enforcement is theatre.
-- **`conduct@decionis.com` must exist and be monitored.** Same reasoning as the security address: a
-  code of conduct whose reporting channel bounces is worse than not publishing one.
+- ✅ **`conduct@decionis.com` confirmed monitored.**
+- ⚠️ **The `@decionis/cdi-maintainers` and `@decionis/cdi-security` GitHub teams must exist**, with
+  members, or CODEOWNERS silently matches nothing. Combined with the branch-protection gap in W2.4,
+  code-owner review is currently enforcing nothing at all.
+- ⚠️ **The `dependencies` label does not exist** in this repository. The scheduled audit job creates
+  its tracking issue with `--label dependencies`, and `gh issue create` fails on an unknown label —
+  so the first weekly failure would produce no issue and no notification. One-line fix:
+
+  ```bash
+  gh label create dependencies --repo decionis/cdi --color 0366d6 --description "Dependency and supply-chain updates"
+  ```
 
 ### W6 — Launch
 
