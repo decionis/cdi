@@ -12,9 +12,13 @@ name: Scorecard
 # publish_results on so results reach the public OpenSSF API and the badge in
 # README.md resolves.
 #
-# It was workflow_dispatch-only while this repository was internal: Scorecard's
-# GraphQL queries are unavailable to the default token there, and a score nobody
-# could see was not worth storing a long-lived PAT to obtain.
+# It was workflow_dispatch-only while this repository was internal, because a
+# score nobody could see was not worth the CI minutes.
+#
+# It also failed then with "Resource not accessible by integration", which was
+# read at the time as an entitlement problem that going public would solve. It
+# was not: the job simply lacked the permissions Scorecard needs. Going public
+# changed nothing about it. See the permissions block below.
 on:
   branch_protection_rule:
   push:
@@ -36,7 +40,16 @@ jobs:
     permissions:
       contents: read
       security-events: write # upload SARIF to code scanning
-      id-token: write # required by publish_results once enabled
+      id-token: write # required by publish_results
+      actions: read # Scorecard reads workflow runs to score CI-Tests
+      # Scorecard's ListCommits query walks commits together with the pull
+      # requests and reviews attached to them, which is how Branch-Protection
+      # and Code-Review are scored. Without these it fails setup outright with
+      # "Resource not accessible by integration" — the failure looks like a
+      # visibility or entitlement problem and is neither.
+      pull-requests: read
+      issues: read
+      checks: read
 
     steps:
       - name: Check out
