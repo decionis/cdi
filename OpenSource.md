@@ -36,7 +36,8 @@ Measured against the current tree this session, not estimated.
 | LGPL-3.0-or-later present in the production tree (`@img/sharp-libvips-*`)                 | High — needs an answer | ✅ Documented |
 | No CI or audit enforcement                                                                | High                   | ✅ Fixed      |
 | No signed or attested releases, no SBOM                                                   | High                   | ✅ Fixed      |
-| **Branch protection ruleset exists but is `disabled` and targets no branch**              | **High**               | **Open**      |
+| Branch protection — PR + code-owner review enforced                                       | High                   | ✅ Fixed      |
+| **Required status checks absent, so a PR can merge with CI red**                          | **High**               | **Open**      |
 | **Push protection, Dependabot, and private vuln reporting all disabled**                  | **High**               | **Open**      |
 | Auth and gateway paths (`middleware.ts`, `CdiSessionResolver`, `JsonHttpClient`) untested | High                   | ✅ Fixed      |
 | No `SECURITY.md`, no disclosure policy, no response-time commitment                       | High                   | ✅ Fixed      |
@@ -139,23 +140,31 @@ This is where an enterprise buyer's opinion is actually formed.
    fail permanently on a Linux runner against a macOS-generated file. Asserting the license set is
    platform-independent and is the property a reviewer actually cares about.
 
-4. ⚠️ **Branch protection on `master` — configured but NOT in effect.** A ruleset named
-   "Decionis Protection" exists on the repository and is, as of this writing, doing nothing:
+4. ⚠️ **Branch protection on `master` — active, but CI is still not required.** The ruleset
+   "Decionis Protection Rules" is enforcing, with no bypass actors. Verified against the API rather
+   than the settings UI, because a ruleset can look configured and enforce nothing:
 
-   | Setting                | Actual state                                      |
-   | ---------------------- | ------------------------------------------------- |
-   | `enforcement`          | `disabled` — the ruleset is inactive              |
-   | `conditions.ref_name`  | `include: []` — targets no branch, even if active |
-   | Rules present          | `deletion`, `non_fast_forward` only               |
-   | Required status checks | **absent**                                        |
-   | Required PR review     | **absent**                                        |
-   | Code-owner review      | **absent**                                        |
+   | Rule                            | State                                                  |
+   | ------------------------------- | ------------------------------------------------------ |
+   | Pull request required           | ✅ active                                              |
+   | Approving reviews               | ✅ 1                                                   |
+   | Code-owner review               | ✅ required — CODEOWNERS is live                       |
+   | Bypass actors                   | ✅ none, so admins cannot merge around it              |
+   | `deletion`, `non_fast_forward`  | ✅ active                                              |
+   | **`required_status_checks`**    | ❌ **empty**                                           |
+   | `code_scanning` (CodeQL, high+) | ⚠️ requires results CodeQL cannot produce (see item 8) |
+   | `code_coverage` (80% minimum)   | ⚠️ this repository generates no coverage report at all |
 
-   So `master` currently accepts a direct push, and a pull request can merge with `verify` and
-   `audit` red. Fixing it needs three things: set enforcement to **Active**, target `master` (or
-   `~DEFAULT_BRANCH`), and add the **Require status checks to pass** rule naming
-   `verify (node 20)`, `verify (node 22)`, and `audit`, plus **Require a pull request before merging**
-   with code-owner review. Until then W5's CODEOWNERS is advisory and the workflows are decorative.
+   Direct pushes to `master` are genuinely blocked, which is the larger half. But **`verify (node 20)`,
+   `verify (node 22)`, and `audit` are not required**, so a pull request can still merge with CI fully
+   red provided a code owner approves. Add the **Require status checks to pass** rule naming those
+   three contexts.
+
+   The other two rules reference data that does not exist. `code_scanning` demands CodeQL results
+   while Code Security is disabled, so CodeQL can never upload any; `code_coverage` demands 80% while
+   `pnpm test` runs without `--coverage` and nothing is ever reported. Either enable the underlying
+   capability or remove the rule — a gate waiting on a signal that never arrives is indistinguishable
+   from a gate that is off, and harder to notice.
 
 5. ✅ **Every GitHub Action pinned by commit SHA**, not tag, with the version in a trailing comment.
    Tags are mutable; a governance product that resolves build steps by moving reference undercuts its
@@ -322,18 +331,51 @@ Sign-off status:
   gh label create dependencies --repo decionis/cdi --color 0366d6 --description "Dependency and supply-chain updates"
   ```
 
-### W6 — Launch
+### W6 — Launch — mostly done
 
-- **Screenshots in the README** — the largest remaining documentation gap for a product that is
-  entirely a UI.
-- **A public demo deployment** on `CDI_DATA_MODE=demo`. The app already builds `output: "standalone"`,
-  so this is nearly free. Note `next.config.ts` sets `X-Robots-Tag: noindex`; drop it on the demo host
-  only if discoverability matters.
-- **An evidence pack** (below) — the actual sales artifact this whole plan produces.
-- **Semver from 0.1.0**, `Changelog.md`, tagged releases. State plainly that `domain/` contracts may
-  break before 1.0.
-- Announce only after W1–W4 are done. The repository gets one first impression, and the buyers who
-  look earliest are the ones who matter most.
+- ✅ **[`EvidencePack.md`](../EvidencePack.md)** — the artifact this whole plan exists to produce.
+  A questionnaire-row-to-artifact index, a table proving each boundary control with its file _and_
+  its test, the commands a reviewer can run, and a section of fast answers that deliberately includes
+  the weak ones: no CSP, no pen test, no SOC 2 in this tier. A reviewer finds gaps faster than we can
+  hide them, and a vendor that states its own is easier to trust on the rest.
+- ✅ **[`CHANGELOG.md`](../CHANGELOG.md)** — Keep a Changelog format, semver from 0.1.0, stating
+  plainly that `domain/` contracts may break before 1.0.
+- ✅ **Deployment recipe** — [`Dockerfile`](../Dockerfile) and `.dockerignore`, which is what makes a
+  public demo deployment cheap. Multi-stage, `--frozen-lockfile` so the image cannot resolve a
+  different tree than CI audited, non-root, telemetry off, `HEALTHCHECK` on `/api/health`.
+  **Verified end to end**: image builds, container reports `healthy`, `/api/cdi/portfolio` serves
+  `DEMO` with 4 accounts, `id` confirms uid 1000, security headers present and no `x-powered-by`.
+- ✅ **README deployment section**, including the non-obvious part: `.next/standalone` is not
+  self-sufficient — `next build` emits static assets separately and `.next/static` must be copied
+  alongside the server.
+- ✅ **The application itself was run and verified**, rather than described from the source. Demo mode
+  matches what the README claims: the fixture operator renders as `ADMIN · APPROVER`, the `DEMO
+EVIDENCE` badge is present, and every review control is captioned "Records a review only; no
+  downstream limit is changed" — the trust boundary stated in the interface, not just in the docs.
+  The BFF was exercised directly: `/api/health` open, portfolio `DEMO` with 4 accounts, a review
+  returning a deterministic `HELD` plus dossier reference, and an invalid decision producing
+  `400 INVALID_REQUEST` with Zod issues — `CdiApiErrorMapper` behaving in the running app exactly as
+  its unit tests assert.
+
+Still open:
+
+- ⚠️ **Screenshots — the one W6 item not delivered.** There is no doubt about _what_ to capture: the
+  control center at desktop width, the governed action queue, and `/accounts/acct-atlas`. Producing
+  committed image assets needs either a headless capture script — which means adding Playwright as a
+  devDependency purely for screenshots — or someone taking three PNGs by hand. **Recommend by hand
+  for now**; revisit a capture script only if they start going stale. Do not add placeholder image
+  links in the meantime: a README with broken images is worse than one with none.
+- **A public demo deployment.** The Dockerfile makes this a hosting decision rather than an
+  engineering one. Note `next.config.ts` sets `X-Robots-Tag: noindex, nofollow, noarchive`; drop that
+  header on the demo host only if discoverability matters.
+- **Seed six to ten `good first issue`s** that are genuinely small and genuinely wanted —
+  accessibility on the portfolio table, empty and error states, `CdiFormat` edge cases, a CSP. An
+  empty issue tracker converts nobody.
+- **Prove the release pipeline before trusting a tag.** `release.yml` has never executed. Run it via
+  `workflow_dispatch` with `dry_run: true` first; it uploads the tarball and SBOM as artifacts
+  without publishing anything.
+- **Announce only after the repository-settings gaps in W2.4 and W2.8 are closed.** The repository
+  gets one first impression, and the buyers who look earliest are the ones who matter most.
 
 ## Sequencing
 
